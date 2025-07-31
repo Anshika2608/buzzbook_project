@@ -3,7 +3,9 @@ import React from 'react'
 
 const Signup = () => {
   return (
+    <div className='min-h-screen flex items-center justify-center light-bg '>
     <SignupForm/>
+    </div>
   )
 }
 

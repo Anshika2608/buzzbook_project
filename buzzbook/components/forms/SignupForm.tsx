@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useRef, useEffect } from "react";
@@ -6,7 +5,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-
+import Link from "next/link";
 import {
   Form,
   FormControl,
@@ -75,21 +74,22 @@ export default function SignupForm() {
   return (
     <>
       <Form {...form}>
-        <form
+        <form 
           onSubmit={(e) => {
             e.preventDefault();
             handleRecaptchaAndSubmit();
           }}
-          className="space-y-6 w-full max-w-md mx-auto"
+          className="space-y-6 w-full max-w-md mx-auto auth-bg py-6 px-6 rounded-lg shadow-lg shadow-[rgb(53,34,85)]"
         >
+          <h2 className="text-[#e4c8bb] text-xl font-bold">Sign up</h2>
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Full Name</FormLabel>
+                <FormLabel>Username</FormLabel>
                 <FormControl>
-                  <Input placeholder="Anshika Mittal" {...field} />
+                  <Input className="bg-[#553a7c] border-none shadow-lg shadow-[rgb(53,34,85)] my-1" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -102,7 +102,7 @@ export default function SignupForm() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="anshika@example.com" {...field} />
+                  <Input type="email" className="auth-input"{...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -115,7 +115,7 @@ export default function SignupForm() {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="••••••••" {...field} />
+                  <Input type="password" className="auth-input"placeholder="••••••••" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -128,7 +128,9 @@ export default function SignupForm() {
               <FormItem>
                 <FormLabel>Confirm Password</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="••••••••" {...field} />
+                  <Input type="password"  placeholder="••••••••" 
+                  className="auth-input"
+                  {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -141,9 +143,11 @@ export default function SignupForm() {
             size="invisible"
           />
 
-          <Button type="submit" className="w-full">
-            Register
+          <Button type="submit" className="w-full bg-[#9b87d7] text-[#301656] hover:bg-[#7554a1] hover:text-[#e4c8bb] font-bold mb-3 mt-3">
+            Sign up
           </Button>
+          <h3 className="text-center"> <Link href="/login">Already have an account ? Login
+          </Link></h3>
         </form>
         
       </Form>
