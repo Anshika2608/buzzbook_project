@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { LoginSchema, LoginFormData } from "@/lib/validation/Loginschema";
 import login from "@/actions/login";
 import { useAuth } from "@/app/context/AuthContext";
+import Link from "next/link";
 const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!;
 
 export default function LoginForm() {
@@ -75,13 +76,15 @@ form.handleSubmit(async (data) => {
 
   return (
     <Form {...form}>
+
       <form
         onSubmit={(e) => {
           e.preventDefault();
           handleRecaptchaAndSubmit();
         }}
-        className="space-y-6 w-full max-w-md mx-auto"
+        className="space-y-6 w-full max-w-md mx-auto auth-bg py-6 px-6 rounded-lg shadow-lg shadow-[rgb(53,34,85)]"
       >
+                  <h2 className="text-[#e4c8bb] text-xl font-bold">Log in</h2>
         <FormField
           control={form.control}
           name="email"
@@ -89,7 +92,7 @@ form.handleSubmit(async (data) => {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="you@example.com" {...field} />
+                <Input type="email" className="auth-input"{...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -102,24 +105,28 @@ form.handleSubmit(async (data) => {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
+                <Input type="password" placeholder="••••••••" className="auth-input" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+       <h3 className="text-right -mt-6 "><Link  href='/forgot'>Forgot Password</Link></h3> 
 
         <ReCAPTCHA ref={recaptchaRef} sitekey={siteKey} size="invisible" />
 
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full bg-[#9b87d7] text-[#301656] hover:bg-[#7554a1] hover:text-[#e4c8bb] font-bold mb-3 mt-3">
           Login
         </Button>
+       
+        <h3 className="text-center font-medium my-4 mb-7">Or login with</h3>
         <Button
           onClick={handleGoogleLogin}
-          className="w-full bg-red-500 hover:bg-red-600 text-white"
+          className="auth-input w-full"
         >
           Continue with Google
         </Button>
+         <h3 className="text-center"><Link href='/signup'>Dont have an account? Signup</Link></h3>
       </form>
     </Form>
   );

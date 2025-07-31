@@ -15,7 +15,10 @@ export default function Footer() {
               <span className="text-white font-light tracking-wide">BOOK</span>
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
+
               Your premier destination for seamless movie bookings. Experience cinema like never before with BuzzBook&rsquo;s intuitive platform.
+
+
 
             </p>
             <div className="flex space-x-4">

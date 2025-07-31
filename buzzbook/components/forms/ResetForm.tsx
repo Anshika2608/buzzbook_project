@@ -55,10 +55,8 @@ export default function ResetPasswordForm({ id, token }: Props) {
   };
 
   return (
-    <div className="max-w-md mx-auto py-10">
-      <h2 className="text-2xl font-semibold mb-6">Reset Your Password</h2>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <Form {...form} >
+        <form onSubmit={form.handleSubmit(onSubmit)}  className="space-y-6 w-full max-w-md mx-auto auth-bg py-6 px-6 rounded-lg shadow-lg shadow-[rgb(53,34,85)]">
           <FormField
             control={form.control}
             name="password"
@@ -66,7 +64,8 @@ export default function ResetPasswordForm({ id, token }: Props) {
               <FormItem>
                 <FormLabel>New Password</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="Enter new password" {...field} />
+                  <Input type="password" placeholder="Enter new password" {...field}  className='auth-input'
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -80,18 +79,17 @@ export default function ResetPasswordForm({ id, token }: Props) {
               <FormItem>
                 <FormLabel>Confirm Password</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="Re-enter password" {...field} />
+                  <Input type="password" placeholder="Re-enter password" {...field}  className='auth-input' />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <Button type="submit" disabled={isPending} className="w-full">
+          <Button type="submit" disabled={isPending} className="w-full bg-[#9b87d7] text-[#301656] hover:bg-[#7554a1] hover:text-[#e4c8bb] font-bold mb-3 mt-3">
             {isPending ? 'Resetting...' : 'Reset Password'}
           </Button>
         </form>
       </Form>
-    </div>
   );
 }

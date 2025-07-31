@@ -99,7 +99,10 @@ export default function Page() {
   const id = params?.id as string;
   const token = params?.token as string;
 
-  return <ResetPasswordForm id={id} token={token} />;
+  return (
+     <div className='min-h-screen flex items-center justify-center light-bg '>
+  <ResetPasswordForm id={id} token={token} />
+  </div>)
 }
 
 

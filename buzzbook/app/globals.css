@@ -19,7 +19,17 @@
   color utility to any element that depends on these defaults.
 */
 .light-bg{
-  background-color: #f8eff4;
+background-image: linear-gradient(to bottom right, #372152, #ac77c2);
+}
+.auth-bg{
+  background-color: #432e6a;
+  color: #e4c8bb;
+}
+.auth-input{
+  background-color: #553a7c;
+ border:none;
+ margin:0.25rem 0;
+  box-shadow: 0 0.25rem 0.5rem rgb(53, 34, 85);
 }
 @layer base {
   *,
