@@ -18,20 +18,25 @@
   If we ever want to remove these styles, we need to add an explicit border
   color utility to any element that depends on these defaults.
 */
-.light-bg{
-background-image: linear-gradient(to bottom right, #372152, #ac77c2);
+.light-bg {
+  background-image: linear-gradient(to bottom right, #372152, #ac77c2);
 }
-.auth-bg{
+
+.auth-bg {
   background-color: #432e6a;
   color: #e4c8bb;
 }
-.auth-input{
-  background-color: #553a7c;
- border:none;
- margin:0.25rem 0;
+
+.auth-input {
+  border: none;
+  margin: 0.25rem 0;
   box-shadow: 0 0.25rem 0.5rem rgb(53, 34, 85);
+  max-width: 100%;
+  color:white;
 }
+
 @layer base {
+
   *,
   ::after,
   ::before,
@@ -40,6 +45,7 @@ background-image: linear-gradient(to bottom right, #372152, #ac77c2);
     border-color: var(--color-gray-200, currentcolor);
   }
 }
+
 /*
   ---break---
 */
@@ -80,6 +86,7 @@ background-image: linear-gradient(to bottom right, #372152, #ac77c2);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 }
+
 /*
   ---break---
 */
@@ -117,6 +124,7 @@ background-image: linear-gradient(to bottom right, #372152, #ac77c2);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 }
+
 /*
   ---break---
 */
@@ -153,6 +161,7 @@ background-image: linear-gradient(to bottom right, #372152, #ac77c2);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
+
 /*
   ---break---
 */
@@ -160,6 +169,7 @@ background-image: linear-gradient(to bottom right, #372152, #ac77c2);
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }

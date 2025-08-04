@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Mail, Lock } from "lucide-react";
 
 import {
   Form,
@@ -28,7 +29,7 @@ export default function LoginForm() {
   const router = useRouter();
   const recaptchaRef = useRef<ReCAPTCHA>(null);
 
-const { refreshUser } = useAuth();
+  const { refreshUser } = useAuth();
   const form = useForm<LoginFormData>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
@@ -56,22 +57,22 @@ const { refreshUser } = useAuth();
     form.setValue("recaptchaToken", recaptchaValue);
     recaptchaRef.current?.reset();
 
-form.handleSubmit(async (data) => {
-  const res = await login(data);
+    form.handleSubmit(async (data) => {
+      const res = await login(data);
 
-  if (res.success) {
-    toast.success("✅ Logged in successfully!");
-    form.reset();
-    await refreshUser();
-    router.push("/dashboard");
-  } else if (res.fieldErrors) {
-    Object.entries(res.fieldErrors).forEach(([field, message]) =>
-      form.setError(field as keyof LoginFormData, { message })
-    );
-  } else {
-    toast.error(res.error?.message || "Login failed");
-  }
-})();
+      if (res.success) {
+        toast.success("✅ Logged in successfully!");
+        form.reset();
+        await refreshUser();
+        router.push("/dashboard");
+      } else if (res.fieldErrors) {
+        Object.entries(res.fieldErrors).forEach(([field, message]) =>
+          form.setError(field as keyof LoginFormData, { message })
+        );
+      } else {
+        toast.error(res.error?.message || "Login failed");
+      }
+    })();
   };
 
   return (
@@ -82,17 +83,30 @@ form.handleSubmit(async (data) => {
           e.preventDefault();
           handleRecaptchaAndSubmit();
         }}
-        className="space-y-6 w-full max-w-md mx-auto auth-bg py-6 px-6 rounded-lg shadow-lg shadow-[rgb(53,34,85)]"
-      >
-                  <h2 className="text-[#e4c8bb] text-xl font-bold">Log in</h2>
+        className="space-y-6 max-w-sm mx-auto py-6  rounded-lg"      >
+        <div className="flex justify-end  lg:mr-17">
+          <img
+            src="/buzz-1.png"
+            alt="Logo"
+            className="h-20 min-h-[5rem] w-auto object-contain"
+          />
+        </div>
+        <h2 className="text-white text-xl font-bold text-center">Log in</h2>
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel className="text-white text-lg">Email</FormLabel>
               <FormControl>
-                <Input type="email" className="auth-input"{...field} />
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a66b5] w-5 h-5" />
+                  <Input
+                    type="email"
+                    className="auth-input pl-10"
+                    {...field}
+                  />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -103,30 +117,38 @@ form.handleSubmit(async (data) => {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel className="text-white text-lg">Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••••" className="auth-input" {...field} />
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a66b5] w-5 h-5" />
+                  <Input
+                    type="password"
+                    placeholder="••••••••"
+                    className="auth-input pl-10"
+                    {...field}
+                  />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-       <h3 className="text-right -mt-6 "><Link  href='/forgot'>Forgot Password</Link></h3> 
+        <h3 className="text-right -mt-6 text-white pt-2"><Link href='/forgot'>Forgot Password</Link></h3>
 
         <ReCAPTCHA ref={recaptchaRef} sitekey={siteKey} size="invisible" />
 
-        <Button type="submit" className="w-full bg-[#9b87d7] text-[#301656] hover:bg-[#7554a1] hover:text-[#e4c8bb] font-bold mb-3 mt-3">
+        <Button type="submit" className="w-full bg-[#372152]  text-white hover:bg-[#7554a1] hover:text-[#e4c8bb] font-bold mb-3 ">
           Login
         </Button>
-       
-        <h3 className="text-center font-medium my-4 mb-7">Or login with</h3>
+
+        <h3 className="text-center font-medium my-4 mb-7 text-white">Or login with</h3>
         <Button
           onClick={handleGoogleLogin}
-          className="auth-input w-full"
+          className="bg-[#372152] w-full hover:bg-[#7554a1]"
         >
           Continue with Google
         </Button>
-         <h3 className="text-center"><Link href='/signup'>Dont have an account? Signup</Link></h3>
+        <h3 className="text-center text-white"><Link href='/signup'>Don't have an account? Signup</Link></h3>
       </form>
     </Form>
   );
