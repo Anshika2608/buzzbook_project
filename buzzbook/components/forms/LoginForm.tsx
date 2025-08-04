@@ -148,7 +148,7 @@ export default function LoginForm() {
         >
           Continue with Google
         </Button>
-        <h3 className="text-center text-white"><Link href='/signup'>Don't have an account? Signup</Link></h3>
+        <h3 className="text-center text-white"><Link href='/signup'>Don&apos;t have an account? Signup</Link></h3>
       </form>
     </Form>
   );
