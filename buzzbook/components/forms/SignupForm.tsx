@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import Link from "next/link";
+import { Mail, Lock } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -56,8 +57,8 @@ export default function SignupForm() {
       for (const key in data) {
         formData.append(key, data[key as keyof SignupFormData]);
       }
-     formData.set("recaptchaToken", recaptchaValue || "");
-    const res = await register(data);
+      formData.set("recaptchaToken", recaptchaValue || "");
+      const res = await register(data);
       if (res.success) {
         toast.success("🎉 Account created!");
         form.reset();
@@ -74,22 +75,29 @@ export default function SignupForm() {
   return (
     <>
       <Form {...form}>
-        <form 
+        <form
           onSubmit={(e) => {
             e.preventDefault();
             handleRecaptchaAndSubmit();
           }}
-          className="space-y-6 w-full max-w-md mx-auto auth-bg py-6 px-6 rounded-lg shadow-lg shadow-[rgb(53,34,85)]"
+          className="space-y-6 max-w-sm mx-auto py-6  rounded-lg"
         >
-          <h2 className="text-[#e4c8bb] text-xl font-bold">Sign up</h2>
+          <div className="flex justify-end  lg:mr-17">
+            <img
+              src="/buzz-1.png"
+              alt="Logo"
+              className="h-20 min-h-[5rem] w-auto object-contain"
+            />
+          </div>
+          <h2 className="text-white text-xl font-bold text-center">Sign up</h2>
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Username</FormLabel>
+                <FormLabel className="text-white text-lg">Username</FormLabel>
                 <FormControl>
-                  <Input className="bg-[#553a7c] border-none shadow-lg shadow-[rgb(53,34,85)] my-1" {...field} />
+                  <Input className="auth-input" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -100,9 +108,16 @@ export default function SignupForm() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel className="text-white text-lg">Email</FormLabel>
                 <FormControl>
-                  <Input type="email" className="auth-input"{...field} />
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a66b5] w-5 h-5" />
+                    <Input
+                      type="email"
+                      className="auth-input pl-10"
+                      {...field}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -113,9 +128,17 @@ export default function SignupForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel className="text-white text-lg">Password</FormLabel>
                 <FormControl>
-                  <Input type="password" className="auth-input"placeholder="••••••••" {...field} />
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a66b5] w-5 h-5" />
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      className="auth-input pl-10"
+                      {...field}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -126,11 +149,17 @@ export default function SignupForm() {
             name="cpassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
+                <FormLabel className="text-white text-lg">Confirm Password</FormLabel>
                 <FormControl>
-                  <Input type="password"  placeholder="••••••••" 
-                  className="auth-input"
-                  {...field} />
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a66b5] w-5 h-5" />
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      className="auth-input pl-10"
+                      {...field}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -143,13 +172,13 @@ export default function SignupForm() {
             size="invisible"
           />
 
-          <Button type="submit" className="w-full bg-[#9b87d7] text-[#301656] hover:bg-[#7554a1] hover:text-[#e4c8bb] font-bold mb-3 mt-3">
+          <Button type="submit" className="w-full bg-[#372152]  text-white hover:bg-[#7554a1] hover:text-[#e4c8bb] font-bold mb-3">
             Sign up
           </Button>
-          <h3 className="text-center"> <Link href="/login">Already have an account ? Login
+          <h3 className="text-center text-white"> <Link href="/login">Already have an account ? Login
           </Link></h3>
         </form>
-        
+
       </Form>
     </>
   );

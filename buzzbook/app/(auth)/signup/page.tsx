@@ -3,8 +3,17 @@ import React from 'react'
 
 const Signup = () => {
   return (
-    <div className='min-h-screen flex items-center justify-center light-bg '>
-    <SignupForm/>
+    <div className="
+      min-h-screen 
+      flex flex-col items-end justify-center 
+      bg-cover bg-center 
+      md:bg-[url('/login1.png')] 
+      bg-[url('/login2.png')] 
+      lg:pr-64
+    ">
+      <div className="bg-opacity-80 p-8 rounded-lg shadow-lg">
+        <SignupForm />
+      </div>
     </div>
   )
 }
