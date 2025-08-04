@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect,useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock,Eye,EyeOff } from "lucide-react";
 
 import {
   Form,
@@ -28,7 +28,7 @@ const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!;
 export default function LoginForm() {
   const router = useRouter();
   const recaptchaRef = useRef<ReCAPTCHA>(null);
-
+const [showPassword, setShowPassword] = useState(false);
   const { refreshUser } = useAuth();
   const form = useForm<LoginFormData>({
     resolver: zodResolver(LoginSchema),
@@ -122,11 +122,18 @@ export default function LoginForm() {
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a66b5] w-5 h-5" />
                   <Input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     className="auth-input pl-10"
                     {...field}
                   />
+                     <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a66b5] cursor-pointer"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                 </div>
               </FormControl>
               <FormMessage />

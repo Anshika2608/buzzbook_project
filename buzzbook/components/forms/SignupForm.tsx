@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -23,6 +23,9 @@ import register from "@/actions/signup";
 const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!;
 
 export default function SignupForm() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const form = useForm<SignupFormData>({
@@ -97,7 +100,14 @@ export default function SignupForm() {
               <FormItem>
                 <FormLabel className="text-white text-lg">Username</FormLabel>
                 <FormControl>
-                  <Input className="auth-input" {...field} />
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a66b5] w-5 h-5" />
+                    <Input
+                      type="email"
+                      className="auth-input pl-10"
+                      {...field}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -133,17 +143,25 @@ export default function SignupForm() {
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a66b5] w-5 h-5" />
                     <Input
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
-                      className="auth-input pl-10"
+                      className="auth-input pl-10 pr-10"
                       {...field}
                     />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a66b5] cursor-pointer"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                   </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="cpassword"
@@ -154,17 +172,25 @@ export default function SignupForm() {
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a66b5] w-5 h-5" />
                     <Input
-                      type="password"
+                      type={showConfirmPassword ? "text" : "password"}
                       placeholder="••••••••"
-                      className="auth-input pl-10"
+                      className="auth-input pl-10 pr-10"
                       {...field}
                     />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a66b5] cursor-pointer"
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                   </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
 
           <ReCAPTCHA
             ref={recaptchaRef}
