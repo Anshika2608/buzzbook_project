@@ -27,7 +27,7 @@ export const StatsProvider = ({ children }: { children: ReactNode }) => {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:5000/admin/get_stats");
+      const res = await axios.get("https://buzzbook-server-dy0q.onrender.com/admin/get_stats");
       setStats(res.data);
     } catch (error) {
       console.error("Error fetching stats:", error);

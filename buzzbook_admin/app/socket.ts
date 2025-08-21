@@ -5,7 +5,7 @@ let socket: Socket | null = null;
 
 export const getSocket = () => {
   if (!socket) {
-    socket = io("http://localhost:5000", {
+    socket = io("https://buzzbook-server-dy0q.onrender.com", {
       transports: ["websocket"],
       withCredentials: true,
     });

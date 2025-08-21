@@ -4,7 +4,7 @@ import axios from "axios";
 
 export async function addMovieAction(formData: FormData) {
   try {
-    const res = await axios.post("http://localhost:5000/movie/add_movie", formData, {
+    const res = await axios.post("https://buzzbook-server-dy0q.onrender.com/movie/add_movie", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
