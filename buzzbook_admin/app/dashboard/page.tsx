@@ -15,17 +15,15 @@ const Dashboard = () => {
   }
   return (
     <div className="min-h-screen flex bg-gradient-to-b from-gray-900 via-black to-gray-800 text-white">
-      {/* Sidebar */}
       <div className="w-64 pr-4 border-r border-gray-700">
         <Navbar />
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 p-6 space-y-6">
-        {/* Header */}
+       
         <h1 className="text-3xl font-bold text-purple-400">Admin Dashboard</h1>
 
-        {/* Top Stats */}
+        
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 bg-gray-800 rounded-xl shadow-lg">
             <p className="text-gray-400">Total Movies</p>
@@ -53,7 +51,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Recent Bookings (Static Placeholder for now) */}
         <div className="bg-gray-800 rounded-xl p-4 shadow-lg">
           <h2 className="text-xl font-semibold mb-3 text-purple-400">
             Recent Bookings

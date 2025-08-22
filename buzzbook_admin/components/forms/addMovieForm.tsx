@@ -43,13 +43,12 @@ export default function AddMovieForm() {
                 <input name="cast" placeholder="Cast (comma separated)" required className="w-full p-2 border rounded-md" />
                 <textarea name="description" placeholder="Description" required className="w-full p-2 border rounded-md" />
 
-                {/* File upload for poster */}
+                
                 <input type="file" name="poster_img" multiple accept="image/*" required className="w-full p-2 border rounded-md" />
 
-                {/* Optional trailers */}
+                
                 <input name="trailer" placeholder="Trailer links (comma separated)" className="w-full p-2 border rounded-md" />
 
-                {/* Adult flag */}
                 <select name="adult" className="w-full p-2 border rounded-md" required>
                     <option value="">Is this an Adult movie?</option>
                     <option value="true">Yes</option>
