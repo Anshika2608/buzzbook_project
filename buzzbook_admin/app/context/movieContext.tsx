@@ -1,5 +1,5 @@
 "use client"
-import {useEffect,createContext,useState,useContext,ReactNode} from 'react';
+import {useEffect,createContext,useState,useContext} from 'react';
 import axios from "axios";
 import { getSocket } from "@/app/socket";
 type Movie={
