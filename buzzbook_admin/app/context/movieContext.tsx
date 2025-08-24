@@ -15,7 +15,7 @@ type MovieContextType={
     movies:Movie[],
     fetchMovies:()=>Promise<void>,
     error:string|null
-    // deleteMovie:(id:String)=>Promise<void>,
+    deleteMovie:(id:string)=>Promise<void>,
 }
 const MovieContext = createContext<MovieContextType | undefined>(undefined);
 
@@ -23,7 +23,7 @@ export const MovieProvider = ({ children }: { children: React.ReactNode }) => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+ const Api_url="https://buzzbook-server-dy0q.onrender.com"
 
 
   // ✅ Fetch movies
@@ -31,7 +31,7 @@ export const MovieProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(true);
     setError(null);
     try {
-       const res = await axios.get("https://buzzbook-server-dy0q.onrender.com/movie/movie_list");
+       const res = await axios.get(`${Api_url}/movie/movie_list`);
       setMovies(res.data.listOfMovies);
     } catch (err: any) {
       setError(err.response?.data?.message || err.message);
@@ -42,24 +42,48 @@ export const MovieProvider = ({ children }: { children: React.ReactNode }) => {
 
 
   // ✅ Delete movie
-//   const deleteMovie = async (id: string) => {
-//     try {
-//       const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-//       if (!res.ok) throw new Error("Failed to delete movie");
-//       setMovies((prev) => prev.filter((m) => m._id !== id));
-//     } catch (err: any) {
-//       setError(err.message);
-//     }
-//   };
+  const deleteMovie = async (id: string) => {
+    try {
+      const res = await axios.delete(`${Api_url}/movie/deleteMovie/${id}`);
+      if (res.status === 200) {
+        
+        setMovies((prev) => prev.filter((m) => m._id !== id));
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message);
+    }
+  };
+  
 
-  // Load movies on mount
+  
   useEffect(() => {
     fetchMovies();
+
+    const socket = getSocket();
+
+    socket.on("connect", () => {
+      console.log("Connected to socket server");
+    });
+
+    socket.on("movieDeleted", (movieId ) => {
+      setMovies((prev) => prev.filter((m) => m._id !== movieId));
+    });
+  socket.on("movieAdded", (newMovie: Movie) => {
+    setMovies((prev) => [...prev, newMovie]);
+  });
+    socket.on("disconnect", () => {
+      console.log("Disconnected from socket server");
+    });
+
+    return () => {
+      socket.off("movieDeleted");
+      socket.disconnect();
+    };
   }, []);
 
   return (
     <MovieContext.Provider
-      value={{ movies, loading, error, fetchMovies }}
+      value={{ movies, loading, error, fetchMovies,deleteMovie }}
     >
       {children}
     </MovieContext.Provider>

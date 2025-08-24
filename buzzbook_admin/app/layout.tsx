@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
 import { StatsProvider } from "./context/statsContext";
 import { MovieProvider } from "./context/movieContext";
 const geistSans = Geist({
@@ -31,6 +32,7 @@ export default function RootLayout({
         <StatsProvider>
           <MovieProvider>
           {children}
+          <Toaster richColors position="top-right" />
           </MovieProvider>
         </StatsProvider>
       </body>

@@ -23,11 +23,11 @@ const StatsContext = createContext<StatsContextType | undefined>(undefined);
 export const StatsProvider = ({ children }: { children: ReactNode }) => {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
-
+ const Api_url="https://buzzbook-server-dy0q.onrender.com"
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("https://buzzbook-server-dy0q.onrender.com/admin/get_stats");
+      const res = await axios.get(`${Api_url}/admin/get_stats`);
       setStats(res.data);
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -38,10 +38,7 @@ export const StatsProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     fetchStats();
-
-    // connect socket
     const socket = getSocket();
-
     socket.on("statsUpdated", (newStats: Stats) => {
       setStats(newStats);
     });
