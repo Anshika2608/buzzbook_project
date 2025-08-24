@@ -6,10 +6,10 @@ import { getSocket } from "@/app/socket";
 type Movie = {
   _id: string;
   title: string;
-  release_date: string; 
+  release_date: string;
   poster_img: string;
   rating: number;
-  genre: string[]; 
+  genre: string[];
 };
 
 type MovieContextType = {
@@ -35,8 +35,14 @@ export const MovieProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const res = await axios.get(`${Api_url}/movie/movie_list`);
       setMovies(res.data.listOfMovies || []);
-    } catch (err: any) {
-      setError(err.response?.data?.message || err.message);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || err.message);
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unexpected error occurred");
+      }
     } finally {
       setLoading(false);
     }
@@ -48,8 +54,14 @@ export const MovieProvider = ({ children }: { children: React.ReactNode }) => {
       if (res.status === 200) {
         setMovies((prev) => prev.filter((m) => m._id !== id));
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || err.message);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || err.message);
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unexpected error occurred");
+      }
     }
   };
 
@@ -73,7 +85,6 @@ export const MovieProvider = ({ children }: { children: React.ReactNode }) => {
     socket.on("disconnect", () => {
       console.log("❌ Disconnected from socket server");
     });
-
 
     return () => {
       socket.off("movieDeleted");
