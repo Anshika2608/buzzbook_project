@@ -26,13 +26,13 @@ type Theater = {
 
 export default function TheaterDetailsPage() {
   const params = useParams();
-  const theaterId = params?.id as string; // /theater/[id]
+  const theaterId = params?.id as string; 
   const [theater, setTheater] = useState<Theater | null>(null);
 
   useEffect(() => {
     if (theaterId) {
       axios
-        .get(`http://localhost:5000/theater/${theaterId}`)
+        .get(`https://buzzbook-server-dy0q.onrender.com/theater/${theaterId}`)
         .then((res) => setTheater(res.data))
         .catch((err) => console.error(err));
     }
