@@ -4,6 +4,7 @@ export const route = {
     'login' : api + 'auth/login',
     'forgot_password' : api + 'auth/sendpasswordLink',
     'logout' : api + 'auth/logout',
-    'validUser':api+'auth/validUser'
+    'validUser':api+'auth/validUser',
+    'location' : api + 'location/'
     
 }
