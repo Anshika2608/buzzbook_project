@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/app/context/AuthContext"; // cleaner with tsconfig baseUrl or path alias
+import { LocationProvider } from "./context/LocationContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,8 +31,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
+          <LocationProvider>
           {children}
           <Toaster richColors position="top-right" />
+          </LocationProvider>
         </AuthProvider>
       </body>
     </html>

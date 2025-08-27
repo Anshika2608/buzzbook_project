@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Search, Menu, X } from "lucide-react"
 import Link from "next/link"
+import Location from '@/components/modals/Location'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -67,6 +68,7 @@ export default function Header() {
           </nav>
 
           {/* Right Actions */}
+          <Location/>
           <div className="hidden lg:flex items-center space-x-4">
             <Button
               variant="ghost"
