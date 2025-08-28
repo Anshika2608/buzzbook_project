@@ -10,15 +10,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useLocation } from "@/app/context/LocationContext";
-// import cityImages from "@/lib/cityIcons";
-// import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const Location = () => {
   const { city, setCity, cities, isOpen, setIsOpen } = useLocation();
+  const router = useRouter();
 
   const handleCitySelect = (selectedCity: string) => {
     setCity(selectedCity);
     setIsOpen(false);
+    localStorage.setItem("selectedCity", selectedCity); 
+    router.push(`/movies/${selectedCity}`);
   };
 
   return (
@@ -43,12 +45,18 @@ const Location = () => {
                 onClick={() => handleCitySelect(c)}
                 className="flex flex-col items-center p-2 rounded border hover:bg-gray-100 max-h-24"
               >
-               <img src="/locationIcons/delhi4.png" className="h-20 w-24"></img>
-                <span className="mt-2">{c}</span> 
+                <img
+                  src="/locationIcons/delhi4.png"
+                  className="h-20 w-24"
+                  alt={c}
+                />
+                <span className="mt-2">{c}</span>
               </button>
             ))
           ) : (
-            <p className="col-span-2 text-center text-gray-500">Loading cities...</p>
+            <p className="col-span-2 text-center text-gray-500">
+              Loading cities...
+            </p>
           )}
         </div>
       </DialogContent>
@@ -57,6 +65,7 @@ const Location = () => {
 };
 
 export default Location;
+
 
 
 

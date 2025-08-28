@@ -5,6 +5,7 @@ export const route = {
     'forgot_password' : api + 'auth/sendpasswordLink',
     'logout' : api + 'auth/logout',
     'validUser':api+'auth/validUser',
-    'location' : api + 'location/'
+    'location' : api + 'location/',
+    'movie': api + 'movie/getMovie/'
     
 }
