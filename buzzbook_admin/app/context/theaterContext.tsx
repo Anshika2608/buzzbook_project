@@ -72,7 +72,7 @@ export function TheaterProvider({ children }: { children: ReactNode }) {
   const [theaters, setTheaters] = useState<Theater[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
- const Api_url="http://localhost:5000"
+ const Api_url="https://buzzbook-server-dy0q.onrender.com"
   const fetchTheaters = async () => {
     setLoading(true);
     setError(null);
