@@ -12,6 +12,30 @@ const layoutConfig: Record<string, string[]> = {
   recliner: ["Recliner", "Regular"],
   balcony: ["Premium", "Regular"],
 };
+type Showtime = {
+  time: string;
+  prices: Record<string, number>;
+};
+
+type Film = {
+  title: string;
+  language: string;
+  showtimes: Showtime[];
+};
+
+type AudiForm = {
+  audi_number: string;
+  layout_type: string;
+  rows: number;
+  seatsPerRow: number;
+  vipRows: number;
+  premiumRows: number;
+  sofaRows: number;
+  regularRows: number;
+  reclinerRows: number;
+  emptySpaces: string[];
+  films_showing: Film[];
+};
 
 export default function AddAudiForm({
   theaterId,
@@ -20,7 +44,7 @@ export default function AddAudiForm({
   theaterId: string;
   onClose: () => void;
 }) {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<AudiForm>({
     audi_number: "",
     layout_type: "",
     rows: 0,
@@ -54,7 +78,7 @@ export default function AddAudiForm({
     const { name, value } = e.target;
 
     if (path && path.length) {
-      setForm((prev: any) => {
+      setForm((prev) => {
         const copy = { ...prev };
         let obj: any = copy;
         for (let i = 0; i < path.length - 1; i++) {
@@ -88,7 +112,7 @@ export default function AddAudiForm({
 
   // ❌ Remove film
 const removeFilm = (filmIndex: number) => {
-  setForm((prev: any) => {
+  setForm((prev) => {
     const copy = { ...prev };
     copy.films_showing = prev.films_showing.filter(
       (_: any, idx: number) => idx !== filmIndex
@@ -99,7 +123,7 @@ const removeFilm = (filmIndex: number) => {
 
 
 const addShowtime = (filmIndex: number) => {
-  setForm((prev: any) => {
+  setForm((prev) => {
     const copy = { ...prev };
     copy.films_showing = [...prev.films_showing]; 
     copy.films_showing[filmIndex] = {
@@ -115,7 +139,7 @@ const addShowtime = (filmIndex: number) => {
 
 
 const removeShowtime = (filmIndex: number, showIndex: number) => {
-  setForm((prev: any) => {
+  setForm((prev) => {
     const copy = { ...prev };
     copy.films_showing = [...prev.films_showing];
     copy.films_showing[filmIndex] = {
