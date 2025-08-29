@@ -71,7 +71,6 @@ const TheaterContext = createContext<TheaterContextType | null>(null);
 
 export function TheaterProvider({ children }: { children: ReactNode }) {
   const [theaters, setTheaters] = useState<Theater[]>([]);
-  const [theater, setTheater] = useState<Theater | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const Api_url = "https://buzzbook-server-dy0q.onrender.com"

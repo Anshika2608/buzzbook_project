@@ -64,7 +64,7 @@ export default function TheaterDetailsPage() {
     if (theaterId) {
       fetchTheater();
     }
-  }, [theaterId]);
+  }, [theaterId,fetchTheater]);
 
   if (!theater) return <p className="text-center mt-10 text-purple-400">Loading...</p>;
 

@@ -29,7 +29,6 @@ export const MovieProvider = ({ children }: { children: React.ReactNode }) => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-const [movie, setMovie] = useState<Movie | null>(null);
   const Api_url = "https://buzzbook-server-dy0q.onrender.com";
 
   const fetchMovies = async () => {
