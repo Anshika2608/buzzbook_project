@@ -7,9 +7,11 @@ type Movie = {
   _id: string;
   title: string;
   release_date: string;
-  poster_img: string;
+  poster_img: string[];
   rating: number;
   genre: string[];
+  description?: string;
+  language?: string;
 };
 
 type MovieContextType = {
@@ -18,6 +20,7 @@ type MovieContextType = {
   fetchMovies: () => Promise<void>;
   error: string | null;
   deleteMovie: (id: string) => Promise<void>;
+  // getMovieById: (id: string) => Promise<void>;
 };
 
 const MovieContext = createContext<MovieContextType | undefined>(undefined);
@@ -26,7 +29,7 @@ export const MovieProvider = ({ children }: { children: React.ReactNode }) => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+const [movie, setMovie] = useState<Movie | null>(null);
   const Api_url = "https://buzzbook-server-dy0q.onrender.com";
 
   const fetchMovies = async () => {
@@ -64,7 +67,23 @@ export const MovieProvider = ({ children }: { children: React.ReactNode }) => {
       }
     }
   };
-
+  // const getMovieById = async (id: string) => {
+  //   try {
+  //     const res = await axios.get(`${Api_url}/movie`,{
+  //       params:
+  //     });
+  //     setMovie(res.data.movie);
+  //     setError(null);
+  //   } catch (err: unknown) {
+  //     if (axios.isAxiosError(err)) {
+  //       setError(err.response?.data?.message || err.message);
+  //     } else if (err instanceof Error) {
+  //       setError(err.message);
+  //     } else {
+  //       setError("An unexpected error occurred");
+  //     }
+  //   }
+  // }
   useEffect(() => {
     fetchMovies();
 

@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState, useContext, createContext, ReactNode } from "react";
 import axios, { AxiosError } from "axios";
-import { getSocket } from "../socket";
 
 type Seat = {
   seat_number?: string;
@@ -60,24 +59,27 @@ type Theater = {
 };
 
 type TheaterContextType = {
+  // theater: Theater | null;
   theaters: Theater[];
   loading: boolean;
   error: string | null;
   fetchTheaters: () => Promise<void>;
+  // fetchTheaterById: (id: string) => Promise<void>; 
 };
 
 const TheaterContext = createContext<TheaterContextType | null>(null);
 
 export function TheaterProvider({ children }: { children: ReactNode }) {
   const [theaters, setTheaters] = useState<Theater[]>([]);
+  const [theater, setTheater] = useState<Theater | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
- const Api_url="https://buzzbook-server-dy0q.onrender.com"
+  const Api_url = "https://buzzbook-server-dy0q.onrender.com"
   const fetchTheaters = async () => {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await axios.get(`${Api_url}/theater/theater_list`); 
+      const { data } = await axios.get(`${Api_url}/theater/theater_list`);
       setTheaters(data.theaters || []);
     } catch (err) {
       const e = err as AxiosError<{ message?: string }>;
@@ -86,7 +88,17 @@ export function TheaterProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   };
-
+  // const fetchTheaterById = async (id: string) => {
+  //   setLoading(true);
+  //   setError(null);
+  //   try {
+  //     const {data} = await axios.get(`${Api_url}/theater/${id}`)
+  //     setTheater(data);
+  //   } catch (err) {
+  //     const e = err as AxiosError<{ message?: string }>;
+  //     setError(e.response?.data?.message || "Failed to fetch theater");
+  //   }
+  // }
 
 
   useEffect(() => {
@@ -108,7 +120,7 @@ export function TheaterProvider({ children }: { children: ReactNode }) {
         theaters,
         loading,
         error,
-        fetchTheaters
+        fetchTheaters,
       }}
     >
       {children}
