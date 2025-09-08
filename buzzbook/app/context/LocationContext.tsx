@@ -44,6 +44,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import axios from "axios";
 import { route } from "@/lib/api";
 import { Movie } from "@/app/types/movie";
+import { Theatre } from "@/app/types/theatre";
 
 type LocationContextType = {
   city: string;
@@ -52,6 +53,10 @@ type LocationContextType = {
   movies: Movie[];
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
+  fetchMovieDetails: (id: string) => Promise<Movie | null>;
+  fetchTheatres: (title: string,location:string) => Promise<void>;
+  theatres: Theatre[];
+  movieDet: Movie | null;
 };
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -60,7 +65,12 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   const [city, setCityState] = useState<string>("Lucknow"); 
   const [cities, setCities] = useState<string[]>([]);
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isOpen, setIsOpen] = useState<boolean>
+  (false);
+const [movieDet, setMovieDet] = useState<Movie | null>(null);
+
+   const [theatres, setTheatres] = useState<Theatre[]>([]);
+  
 
   const fetchMovies = async (selectedCity: string) => {
     try {
@@ -71,6 +81,30 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
       setMovies([]);
     }
   };
+  const fetchMovieDetails = async (id: string): Promise<Movie | null> => {
+  try {
+    const res = await axios.get(`${route.movieDetails}${id}`);
+    setMovieDet(res.data.movie );
+    return res.data.movie;
+
+  } catch (err) {
+    console.error("Error fetching movie details", err);
+    return null;
+  }
+};
+const fetchTheatres = async (title: string, location: string): Promise<void> => {
+  try {
+    const res = await axios.get(`${route.theatre}`, {
+      params: { title, location },
+    })
+    setTheatres(res.data.theaterData || [])
+    console.log(res.data.theaterData);
+  } catch (err) {
+    console.error("Error fetching theatres", err)
+    setTheatres([])
+  }
+}
+
 
   const setCity = (newCity: string) => {
     setCityState(newCity);
@@ -91,6 +125,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
       try {
         const res = await axios.get(route.location);
         setCities(res.data.cities || res.data);
+        console.log(res.data.cities)
       } catch (error) {
         console.error("Error fetching cities", error);
       }
@@ -105,7 +140,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <LocationContext.Provider
-      value={{ city, setCity, cities, movies, isOpen, setIsOpen }}
+      value={{ city, setCity, cities, movies, isOpen, setIsOpen ,fetchMovieDetails,movieDet,fetchTheatres,theatres}}
     >
       {children}
     </LocationContext.Provider>
