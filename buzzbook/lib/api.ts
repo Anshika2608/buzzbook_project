@@ -6,6 +6,8 @@ export const route = {
     'logout' : api + 'auth/logout',
     'validUser':api+'auth/validUser',
     'location' : api + 'location/',
-    'movie': api + 'movie/getMovie/'
+    'movie': api + 'movie/getMovie/',
+    'movieDetails' : api + 'movie/movieDetails/',
+    'theatre' : api +'theater/get_theater/'
     
 }
