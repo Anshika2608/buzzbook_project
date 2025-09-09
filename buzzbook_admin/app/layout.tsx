@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { StatsProvider } from "./context/statsContext";
 import { MovieProvider } from "./context/movieContext";
+import { TheaterProvider } from "./context/theaterContext";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -30,10 +31,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <StatsProvider>
-          <MovieProvider>
-          {children}
-          <Toaster richColors position="top-right" />
-          </MovieProvider>
+          <TheaterProvider>
+            <MovieProvider>
+              {children}
+              <Toaster richColors position="top-right" />
+            </MovieProvider>
+          </TheaterProvider>
         </StatsProvider>
       </body>
     </html>

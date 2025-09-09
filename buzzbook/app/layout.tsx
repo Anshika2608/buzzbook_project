@@ -4,6 +4,8 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/app/context/AuthContext"; // cleaner with tsconfig baseUrl or path alias
 import { LocationProvider } from "./context/LocationContext";
+import Header from "@/components/layout/header";
+import Footer from "@/components/layout/footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,14 +28,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className="min-h-screen flex flex-col bg-gray-900 text-white font-sans antialiased">
         <AuthProvider>
           <LocationProvider>
-          {children}
-          <Toaster richColors position="top-right" />
+            <Header />
+            <main className="flex-grow">{children}</main>
+            <Footer />
+            <Toaster richColors position="top-right" />
           </LocationProvider>
         </AuthProvider>
       </body>

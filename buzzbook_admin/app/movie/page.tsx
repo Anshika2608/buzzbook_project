@@ -5,7 +5,7 @@ import { useMovies } from "@/app/context/movieContext";
 import MovieCard from "@/components/MovieCard";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-
+import Link from "next/link"
 const Page = () => {
   const { movies, loading, error } = useMovies();
   const router = useRouter();
@@ -28,16 +28,22 @@ const Page = () => {
       {loading && <p>Loading movies...</p>}
       {error && <p className="text-red-500">{error}</p>}
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {movies.map((movie) => (
-          <MovieCard
-            key={movie._id}
-            _id={movie._id}
-            title={movie.title}
-            releaseDate={movie.release_date}
-            rating={movie.rating}
-            posterUrl={movie.poster_img[0]}
-          />
-        ))}
+        {movies.map((movie) =>
+          movie._id ? (
+            <Link key={movie._id} href={`/movie/${movie._id}`}>
+              <MovieCard
+                _id={movie._id}
+                title={movie.title}
+                releaseDate={new Date(movie.release_date).toDateString()}
+                rating={movie.rating}
+                posterUrl={movie.poster_img?.[0] || "/fallback.jpg"}
+              />
+            </Link>
+          ) : (
+            <div key={movie.title}>⚠️ Missing ID</div>
+          )
+        )}
+
       </div>
     </div>
   );
