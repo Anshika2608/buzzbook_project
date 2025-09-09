@@ -1,3 +1,4 @@
+
 export interface Showtime {
   _id: string;
   time: string;
@@ -23,4 +24,11 @@ export interface Theatre {
   contact: string;
   popular: boolean;
   audis: Audi[];
+  location:Location[]
+}
+
+export interface Location {
+  city:string,
+  country:string,
+  state:string
 }
