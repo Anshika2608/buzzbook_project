@@ -39,11 +39,12 @@
 //   }
 //   return context;
 // };
+
 "use client";
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import axios from "axios";
 import { route } from "@/lib/api";
-import { Movie } from "@/app/types/movie";
+import { Movie , CarouselMovie } from "@/app/types/movie";
 import { Theatre } from "@/app/types/theatre";
 
 type LocationContextType = {
@@ -51,6 +52,9 @@ type LocationContextType = {
   setCity: (city: string) => void;
   cities: string[];
   movies: Movie[];
+   comingSoonMovies: CarouselMovie[];
+   isLoadingMovies: boolean;
+  isLoadingComingSoon: boolean;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   fetchMovieDetails: (id: string) => Promise<Movie | null>;
@@ -65,11 +69,13 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   const [city, setCityState] = useState<string>("Lucknow"); 
   const [cities, setCities] = useState<string[]>([]);
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [isOpen, setIsOpen] = useState<boolean>
-  (false);
-const [movieDet, setMovieDet] = useState<Movie | null>(null);
+  const [comingSoonMovies, setComingSoonMovies] = useState<CarouselMovie[]>([]);
+  const [isLoadingMovies, setIsLoadingMovies] = useState(true);
+  const [isLoadingComingSoon, setIsLoadingComingSoon] = useState(true);
 
-   const [theatres, setTheatres] = useState<Theatre[]>([]);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [movieDet, setMovieDet] = useState<Movie | null>(null);
+  const [theatres, setTheatres] = useState<Theatre[]>([]);
   
 
   const fetchMovies = async (selectedCity: string) => {
@@ -81,6 +87,7 @@ const [movieDet, setMovieDet] = useState<Movie | null>(null);
       setMovies([]);
     }
   };
+
   const fetchMovieDetails = async (id: string): Promise<Movie | null> => {
   try {
     const res = await axios.get(`${route.movieDetails}${id}`);
@@ -92,6 +99,7 @@ const [movieDet, setMovieDet] = useState<Movie | null>(null);
     return null;
   }
 };
+
 const fetchTheatres = async (title: string, location: string): Promise<void> => {
   try {
     const res = await axios.get(`${route.theatre}`, {
@@ -104,6 +112,31 @@ const fetchTheatres = async (title: string, location: string): Promise<void> => 
     setTheatres([])
   }
 }
+
+const fetchComingSoonMovies = async () => {
+  setIsLoadingComingSoon(true);
+  try {
+    const res = await axios.get(route.comingSoon);
+    console.log("Raw API response:", res.data);   // 👈 check API shape here
+
+    const transformed: CarouselMovie[] = (res.data.movies || []).map((movie: Movie) => ({
+      _id: movie._id,
+      title: movie.title,
+      poster: movie.poster_img[0],
+      releaseDate: movie.release_date,
+      description: movie.description || `Get ready for an unforgettable cinematic experience. Coming soon to a theatre near you.`,
+    }));
+
+    console.log("Transformed movies:", transformed); // 👈 check if array has elements
+
+    setComingSoonMovies(transformed);
+  } catch (err) {
+    console.error("Error fetching coming soon movies", err);
+    setComingSoonMovies([]);
+  } finally {
+    setIsLoadingComingSoon(false);
+  }
+};
 
 
   const setCity = (newCity: string) => {
@@ -119,28 +152,30 @@ const fetchTheatres = async (title: string, location: string): Promise<void> => 
     }
   }, []);
 
- 
+  
   useEffect(() => {
-    const fetchCities = async () => {
-      try {
-        const res = await axios.get(route.location);
-        setCities(res.data.cities || res.data);
-        console.log(res.data.cities)
-      } catch (error) {
-        console.error("Error fetching cities", error);
-      }
-    };
-    fetchCities();
-  }, []);
+  const fetchInitial = async () => {
+    try {
+      const citiesRes = await axios.get(route.location);
+      setCities(citiesRes.data.cities || citiesRes.data);
+    } catch (err) {
+      console.error("Error fetching cities", err);
+    }
+  };
 
+  fetchInitial();
+  fetchComingSoonMovies();
+}, []);
 
-  useEffect(() => {
-    fetchMovies(city);
-  }, [city]);
+useEffect(() => {
+  if (city) fetchMovies(city);
+}, [city]);
 
+  
   return (
     <LocationContext.Provider
-      value={{ city, setCity, cities, movies, isOpen, setIsOpen ,fetchMovieDetails,movieDet,fetchTheatres,theatres}}
+      value={{ comingSoonMovies,isLoadingMovies,
+        isLoadingComingSoon, city, setCity, cities, movies, isOpen, setIsOpen ,fetchMovieDetails,movieDet,fetchTheatres,theatres}}
     >
       {children}
     </LocationContext.Provider>
