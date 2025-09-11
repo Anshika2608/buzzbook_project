@@ -19,7 +19,7 @@ const NowShowing = () => {
         <div className="mb-4 inline-flex items-center gap-3">
           <span className="h-2 w-2 animate-pulse rounded-full bg-gradient-to-r from-blue-400 to-purple-500" />
           <span className="text-xs font-medium uppercase tracking-wider text-slate-400 sm:text-sm">
-            Don't Miss Out
+            Don&apos;tMiss Out
           </span>
           <span className="h-2 w-2 animate-pulse rounded-full bg-gradient-to-r from-purple-500 to-pink-400" />
         </div>
