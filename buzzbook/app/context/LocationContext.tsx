@@ -39,22 +39,19 @@
 //   }
 //   return context;
 // };
-
 "use client";
 import { createContext, useContext, useState, useEffect, ReactNode,useCallback } from "react";
 import axios from "axios";
 import { route } from "@/lib/api";
-import { Movie , CarouselMovie } from "@/app/types/movie";
+import { Movie } from "@/app/types/movie";
 import { Theatre } from "@/app/types/theatre";
+import { CarouselMovie } from "@/app/types/movie";
 
 type LocationContextType = {
   city: string;
   setCity: (city: string) => void;
   cities: string[];
   movies: Movie[];
-   comingSoonMovies: CarouselMovie[];
-  //  isLoadingMovies: boolean;
-  isLoadingComingSoon: boolean;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   fetchMovieDetails: (id: string) => Promise<Movie | null>;
@@ -63,6 +60,10 @@ type LocationContextType = {
   theatres: Theatre[];
   movieDet: Movie | null;
    priceRanges: string[];
+     fetchFilteredTheatresPrice: (movie: string, city: string, priceRange: string) => Promise<void>;
+      comingSoonMovies: CarouselMovie[];
+ isLoadingComingSoon: boolean;
+
 };
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -71,14 +72,14 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   const [city, setCityState] = useState<string>("Lucknow");
   const [cities, setCities] = useState<string[]>([]);
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [comingSoonMovies, setComingSoonMovies] = useState<CarouselMovie[]>([]);
-  // const [isLoadingMovies, setIsLoadingMovies] = useState(true);
-  const [isLoadingComingSoon, setIsLoadingComingSoon] = useState(true);
-
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [movieDet, setMovieDet] = useState<Movie | null>(null);
   const [theatres, setTheatres] = useState<Theatre[]>([]);
   const [priceRanges, setPriceRanges] = useState<string[]>([])
+    const [comingSoonMovies, setComingSoonMovies] = useState<CarouselMovie[]>([]);
+    const [isLoadingComingSoon, setIsLoadingComingSoon] = useState(true);
+
+
 
   // ✅ fetch movies in a city
   const fetchMovies = async (selectedCity: string) => {
@@ -150,32 +151,24 @@ availablePriceRanges
   }
 }
 
-const fetchComingSoonMovies = async () => {
-  setIsLoadingComingSoon(true);
-  try {
-    const res = await axios.get(route.comingSoon);
-    console.log("Raw API response:", res.data);   // 👈 check API shape here
+// fetch theatre - by price range 
+ const fetchFilteredTheatresPrice = async (movie: string, city: string, priceRange: string) => {
+    try {
+      const res = await axios.get(`${route.theatreByPrice}`, {
+        params: { movie, city, priceRange },
+      });
+      const data = Array.isArray(res.data) ? res.data : res.data?.theaters ?? []
+      setTheatres(data);
+    } catch (err) {
+      console.error("Error fetching filtered theatres", err);
+      setTheatres([]);
+    }
+  };
 
-    const transformed: CarouselMovie[] = (res.data.movies || []).map((movie: Movie) => ({
-      _id: movie._id,
-      title: movie.title,
-      poster: movie.poster_img[0],
-      releaseDate: movie.release_date,
-      description: movie.description || `Get ready for an unforgettable cinematic experience. Coming soon to a theatre near you.`,
-    }));
-
-    console.log("Transformed movies:", transformed); // 👈 check if array has elements
-
-    setComingSoonMovies(transformed);
-  } catch (err) {
-    console.error("Error fetching coming soon movies", err);
-    setComingSoonMovies([]);
-  } finally {
-    setIsLoadingComingSoon(false);
-  }
-};
-
-
+  // fetch unique show-time
+  // const fetchUniqueShowTime = async() =>{
+  //   const res = await axios.get(`${route.uniqueTime}`)
+  // }
   const setCity = (newCity: string) => {
     setCityState(newCity);
     localStorage.setItem("selectedCity", newCity);
@@ -188,24 +181,6 @@ const fetchComingSoonMovies = async () => {
     }
   }, []);
 
-  
-  useEffect(() => {
-  const fetchInitial = async () => {
-    try {
-      const citiesRes = await axios.get(route.location);
-      setCities(citiesRes.data.cities || citiesRes.data);
-    } catch (err) {
-      console.error("Error fetching cities", err);
-    }
-  };
-
-  fetchInitial();
-  fetchComingSoonMovies();
-}, []);
-
-useEffect(() => {
-  if (city) fetchMovies(city);
-}, [city]);
   useEffect(() => {
     const fetchCities = async () => {
       try {
@@ -222,10 +197,49 @@ useEffect(() => {
     fetchMovies(city);
   }, [city]);
 
-  
+  //fetch coming soon 
+  const fetchComingSoonMovies = async () => {
+  setIsLoadingComingSoon(true);
+  try {
+    const res = await axios.get(route.comingSoon);
+    console.log("Raw API response:", res.data);   // 👈 check API shape here
+
+    const transformed: CarouselMovie[] = (res.data.movies || []).map((movie: Movie) => ({
+      _id: movie._id,
+      title: movie.title,
+      poster: movie.poster_img[0],
+      releaseDate: movie.release_date,
+      description: movie.description || "Get ready for an unforgettable cinematic experience. Coming soon to a theatre near you.",
+    }));
+
+    console.log("Transformed movies:", transformed); // 👈 check if array has elements
+
+    setComingSoonMovies(transformed);
+  } catch (err) {
+    console.error("Error fetching coming soon movies", err);
+    setComingSoonMovies([]);
+  } finally {
+    setIsLoadingComingSoon(false);
+  }
+};
+  useEffect(() => {
+  const fetchInitial = async () => {
+    try {
+      const citiesRes = await axios.get(route.location);
+      setCities(citiesRes.data.cities || citiesRes.data);
+    } catch (err) {
+      console.error("Error fetching cities", err);
+    }
+  };
+
+  fetchInitial();
+  fetchComingSoonMovies();
+}, []);
+
+
+
   return (
     <LocationContext.Provider
-      
       value={{
         city,
         setCity,
@@ -238,9 +252,10 @@ useEffect(() => {
         fetchTheatres,
         theatres,
         fetchPriceRanges,priceRanges,
-        comingSoonMovies,
+          fetchFilteredTheatresPrice,
+          comingSoonMovies,
         isLoadingComingSoon,
-        // isLoadingMovies,
+
       }}
     >
       {children}
