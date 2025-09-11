@@ -32,3 +32,15 @@ export interface Movie {
   Type:string
 
 }
+
+export interface ApiResponse {
+  movies: Movie[];
+}
+
+export interface CarouselMovie {
+    _id: string;
+    title: string;
+    poster: string; 
+    releaseDate: string;
+    description?: string;
+}
