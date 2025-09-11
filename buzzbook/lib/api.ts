@@ -10,6 +10,7 @@ export const route = {
     'movieDetails' : api + 'movie/movieDetails/',
     'theatre' : api +'theater/get_theater/',
     'showtime':api + 'showtime/get_Showtime',
-    'priceRange': api + 'theater/prices'
-    
+    'priceRange': api + 'theater/prices',
+    'theatreByPrice': api + 'theater/filterTheaters',
+    'uniqueTime': api + 'showtime/uniqueShowtime'
 }

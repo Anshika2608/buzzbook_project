@@ -59,6 +59,7 @@ type LocationContextType = {
   theatres: Theatre[];
   movieDet: Movie | null;
    priceRanges: string[];
+     fetchFilteredTheatresPrice: (movie: string, city: string, priceRange: string) => Promise<void>;
 };
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -142,7 +143,24 @@ availablePriceRanges
   }
 }
 
+// fetch theatre - by price range 
+ const fetchFilteredTheatresPrice = async (movie: string, city: string, priceRange: string) => {
+    try {
+      const res = await axios.get(`${route.theatreByPrice}`, {
+        params: { movie, city, priceRange },
+      });
+      const data = Array.isArray(res.data) ? res.data : res.data?.theaters ?? []
+      setTheatres(data);
+    } catch (err) {
+      console.error("Error fetching filtered theatres", err);
+      setTheatres([]);
+    }
+  };
 
+  // fetch unique show-time
+  // const fetchUniqueShowTime = async() =>{
+  //   const res = await axios.get(`${route.uniqueTime}`)
+  // }
   const setCity = (newCity: string) => {
     setCityState(newCity);
     localStorage.setItem("selectedCity", newCity);
@@ -184,7 +202,8 @@ availablePriceRanges
         movieDet,
         fetchTheatres,
         theatres,
-        fetchPriceRanges,priceRanges
+        fetchPriceRanges,priceRanges,
+          fetchFilteredTheatresPrice,
       }}
     >
       {children}

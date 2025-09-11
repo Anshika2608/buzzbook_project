@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -35,6 +34,7 @@ export default function TheatrePage() {
     theatres,
     fetchPriceRanges,
     priceRanges = [],
+    fetchFilteredTheatresPrice,
   } = useLocation();
   const router = useRouter();
 
@@ -82,10 +82,15 @@ export default function TheatrePage() {
 
   useEffect(() => {
     if (city && movieName) {
-      fetchTheatres(movieName, city);
       fetchPriceRanges(movieName, city);
+
+      if (priceRange === "all") {
+        fetchTheatres(movieName, city);
+      } else {
+        fetchFilteredTheatresPrice(movieName, city, priceRange);
+      }
     }
-  }, [movieName, city, fetchTheatres, fetchPriceRanges]);
+  }, [movieName, city, priceRange]);
 
   if (!movieName) {
     return (
@@ -229,7 +234,7 @@ export default function TheatrePage() {
 
         {/* Theatres List */}
         <div className="space-y-6">
-          {theatres.length === 0 ? (
+          {theatres?.length === 0 ? (
             <Card className="rounded-2xl border-slate-700/50 bg-slate-800/60 backdrop-blur-xl">
               <CardContent className="p-12 text-center">
                 <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-purple-500/20">
@@ -247,7 +252,7 @@ export default function TheatrePage() {
               </CardContent>
             </Card>
           ) : (
-            theatres.map((theatre) => (
+            theatres?.map((theatre) => (
               <Card
                 key={theatre._id}
                 className="rounded-2xl border-slate-700/50 bg-slate-800/60 p-6 backdrop-blur-xl transition-all hover:shadow-xl sm:p-8"
@@ -261,7 +266,7 @@ export default function TheatrePage() {
                     {theatre.address && (
                       <p className="mb-2 flex items-center gap-1 text-sm text-slate-400">
                         <MapPin className="h-4 w-4 text-purple-400" />
-                      {theatre.address}
+                        {theatre.address}
                       </p>
                     )}
                     <p className="mt-1 text-xs text-slate-400">Contact: {theatre.contact}</p>
@@ -298,7 +303,7 @@ export default function TheatrePage() {
 
                     {/* Showtimes */}
                     <div className="flex flex-wrap justify-end gap-3 lg:justify-start">
-                      {theatre.showtimes.map((showtime, index) => (
+                      {theatre.showtimes?.map((showtime, index) => (
                         <Button
                           key={`${theatre._id}-${index}`}
                           variant="outline"
