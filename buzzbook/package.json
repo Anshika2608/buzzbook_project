@@ -16,7 +16,12 @@
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tooltip": "^1.2.8",
+<<<<<<< HEAD
     "axios": "^1.11.0",
+=======
+    "@vis.gl/react-google-maps": "^1.5.5",
+    "axios": "^1.10.0",
+>>>>>>> f7417c59bb3299776a2bd9b7a14dd53fc4544df4
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "js-cookie": "^3.0.5",

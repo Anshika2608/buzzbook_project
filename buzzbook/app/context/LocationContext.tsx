@@ -41,7 +41,7 @@
 // };
 
 "use client";
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode,useCallback } from "react";
 import axios from "axios";
 import { route } from "@/lib/api";
 import { Movie , CarouselMovie } from "@/app/types/movie";
@@ -58,15 +58,17 @@ type LocationContextType = {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   fetchMovieDetails: (id: string) => Promise<Movie | null>;
-  fetchTheatres: (title: string,location:string) => Promise<void>;
+  fetchTheatres: (title: string, location: string) => Promise<void>;
+    fetchPriceRanges: (movie: string, city: string) => Promise<void>
   theatres: Theatre[];
   movieDet: Movie | null;
+   priceRanges: string[];
 };
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
 export const LocationProvider = ({ children }: { children: ReactNode }) => {
-  const [city, setCityState] = useState<string>("Lucknow"); 
+  const [city, setCityState] = useState<string>("Lucknow");
   const [cities, setCities] = useState<string[]>([]);
   const [movies, setMovies] = useState<Movie[]>([]);
   const [comingSoonMovies, setComingSoonMovies] = useState<CarouselMovie[]>([]);
@@ -76,8 +78,9 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [movieDet, setMovieDet] = useState<Movie | null>(null);
   const [theatres, setTheatres] = useState<Theatre[]>([]);
-  
+  const [priceRanges, setPriceRanges] = useState<string[]>([])
 
+  // ✅ fetch movies in a city
   const fetchMovies = async (selectedCity: string) => {
     try {
       const res = await axios.get(`${route.movie}?location=${selectedCity}`);
@@ -88,28 +91,62 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const fetchMovieDetails = async (id: string): Promise<Movie | null> => {
+  //  fetch details for one movie
+const fetchMovieDetails = useCallback(async (id: string): Promise<Movie | null> => {
   try {
     const res = await axios.get(`${route.movieDetails}${id}`);
-    setMovieDet(res.data.movie );
+    setMovieDet(res.data.movie);
     return res.data.movie;
-
   } catch (err) {
     console.error("Error fetching movie details", err);
     return null;
   }
-};
+}, []);
 
-const fetchTheatres = async (title: string, location: string): Promise<void> => {
+  // ✅ fetch theatres + auto-fetch showtimes for each theatre
+  const fetchTheatres = async (title: string, location: string): Promise<void> => {
+    try {
+      const res = await axios.get(`${route.theatre}`, {
+        params: { title, location },
+      });
+
+      const theatreList: Theatre[] = res.data.theaterData || [];
+
+      // fetch showtimes for each theatre in parallel
+      const theatresWithShowtimes = await Promise.all(
+        theatreList.map(async (t) => {
+          try {
+            const showtimeRes = await axios.get(`${route.showtime}`, {
+              params: { theater_id: t.theater_id, movie_title: title },
+            });
+            return { ...t, showtimes: showtimeRes.data.showtimes || [] };
+          } catch (err) {
+            console.error(`Error fetching showtimes for theatre ${t._id}`, err);
+            return { ...t, showtimes: [] };
+          }
+        })
+      );
+
+      setTheatres(theatresWithShowtimes);
+    } catch (err) {
+      console.error("Error fetching theatres", err);
+      setTheatres([]);
+    }
+  };
+
+  //Price Range
+  const fetchPriceRanges = async (movie: string, city: string): Promise<void> => {
   try {
-    const res = await axios.get(`${route.theatre}`, {
-      params: { title, location },
+    const res = await axios.get(`${route.priceRange}`, {
+      params: { movie, city },
     })
-    setTheatres(res.data.theaterData || [])
-    console.log(res.data.theaterData);
+    setPriceRanges(res.data.availablePriceRanges ||[])
+    console.log("Fetched Price Ranges:", res.data.
+availablePriceRanges
+)
   } catch (err) {
-    console.error("Error fetching theatres", err)
-    setTheatres([])
+    console.error("Error fetching price ranges", err)
+    setPriceRanges([])
   }
 }
 
@@ -144,7 +181,6 @@ const fetchComingSoonMovies = async () => {
     localStorage.setItem("selectedCity", newCity);
   };
 
-
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedCity = localStorage.getItem("selectedCity");
@@ -170,12 +206,41 @@ const fetchComingSoonMovies = async () => {
 useEffect(() => {
   if (city) fetchMovies(city);
 }, [city]);
+  useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        const res = await axios.get(route.location);
+        setCities(res.data.cities || res.data);
+      } catch (error) {
+        console.error("Error fetching cities", error);
+      }
+    };
+    fetchCities();
+  }, []);
+
+  useEffect(() => {
+    fetchMovies(city);
+  }, [city]);
 
   
   return (
     <LocationContext.Provider
-      value={{ comingSoonMovies,isLoadingMovies,
-        isLoadingComingSoon, city, setCity, cities, movies, isOpen, setIsOpen ,fetchMovieDetails,movieDet,fetchTheatres,theatres}}
+      
+      value={{
+        city,
+        setCity,
+        cities,
+        movies,
+        isOpen,
+        setIsOpen,
+        fetchMovieDetails,
+        movieDet,
+        fetchTheatres,
+        theatres,
+        fetchPriceRanges,priceRanges,
+        comingSoonMovies,isLoadingMovies,
+        isLoadingComingSoon
+      }}
     >
       {children}
     </LocationContext.Provider>

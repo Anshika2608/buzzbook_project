@@ -16,13 +16,13 @@ export default function MovieDetailPage() {
   const [movie, setMovie] = useState<Movie | null>(null)
   const [isLiked, setIsLiked] = useState(false)
 
-  useEffect(() => {
-    if (id) {
-      fetchMovieDetails(id).then((data) => {
-        if (data) setMovie(data)
-      })
-    }
-  }, [id, fetchMovieDetails])
+useEffect(() => {
+  if (id && (!movie || movie._id !== id)) {
+    fetchMovieDetails(id).then((data) => {
+      if (data) setMovie(data);
+    });
+  }
+}, [id, fetchMovieDetails, movie]);
 
   if (!movie) {
     return (
