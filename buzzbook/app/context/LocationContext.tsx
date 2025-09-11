@@ -63,6 +63,8 @@ type LocationContextType = {
      fetchFilteredTheatresPrice: (movie: string, city: string, priceRange: string) => Promise<void>;
       comingSoonMovies: CarouselMovie[];
  isLoadingComingSoon: boolean;
+fetchUniqueShowTime: (city:string,selectedRange:string,movieTitle:string) => Promise<void>
+
 
 };
 
@@ -142,9 +144,6 @@ const fetchMovieDetails = useCallback(async (id: string): Promise<Movie | null> 
       params: { movie, city },
     })
     setPriceRanges(res.data.availablePriceRanges ||[])
-    console.log("Fetched Price Ranges:", res.data.
-availablePriceRanges
-)
   } catch (err) {
     console.error("Error fetching price ranges", err)
     setPriceRanges([])
@@ -164,11 +163,20 @@ availablePriceRanges
       setTheatres([]);
     }
   };
+// show theatre based on time
+  const fetchUniqueShowTime = async( city: string, selectedRange: string,movieTitle:string) => {
+    try{
+const res = await axios.get(`${route.uniqueTime}`,{
+  params:{city,selectedRange,movieTitle}
+})
+ const data = Array.isArray(res.data) ? res.data : res.data?.theaters ?? []
+      setTheatres(data);
+    }catch (err) {
+      console.error("Error fetching filtered theatres", err);
+      setTheatres([]);
+    }
+  }
 
-  // fetch unique show-time
-  // const fetchUniqueShowTime = async() =>{
-  //   const res = await axios.get(`${route.uniqueTime}`)
-  // }
   const setCity = (newCity: string) => {
     setCityState(newCity);
     localStorage.setItem("selectedCity", newCity);
@@ -255,7 +263,7 @@ availablePriceRanges
           fetchFilteredTheatresPrice,
           comingSoonMovies,
         isLoadingComingSoon,
-
+fetchUniqueShowTime
       }}
     >
       {children}
