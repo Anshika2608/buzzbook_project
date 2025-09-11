@@ -1,6 +1,8 @@
+
 export interface Showtime {
-  _id: string;
-  time: string;
+  theatre_id: string;
+  title: string;
+  time:string;
 }
 
 export interface FilmShowing {
@@ -23,4 +25,16 @@ export interface Theatre {
   contact: string;
   popular: boolean;
   audis: Audi[];
+  location:Location
+  theater_id:string,
+  cancellationAvailable:boolean,
+  facilities:[],
+  showtimes:Showtime[],
+
+}
+
+export interface Location {
+  city:string,
+  country:string,
+  state:string
 }

@@ -8,6 +8,8 @@ export const route = {
     'location' : api + 'location/',
     'movie': api + 'movie/getMovie/',
     'movieDetails' : api + 'movie/movieDetails/',
-    'theatre' : api +'theater/get_theater/'
+    'theatre' : api +'theater/get_theater/',
+    'showtime':api + 'showtime/get_Showtime',
+    'priceRange': api + 'theater/prices'
     
 }
