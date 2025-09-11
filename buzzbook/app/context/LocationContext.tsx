@@ -53,7 +53,7 @@ type LocationContextType = {
   cities: string[];
   movies: Movie[];
    comingSoonMovies: CarouselMovie[];
-   isLoadingMovies: boolean;
+  //  isLoadingMovies: boolean;
   isLoadingComingSoon: boolean;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
@@ -72,7 +72,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   const [cities, setCities] = useState<string[]>([]);
   const [movies, setMovies] = useState<Movie[]>([]);
   const [comingSoonMovies, setComingSoonMovies] = useState<CarouselMovie[]>([]);
-  const [isLoadingMovies, setIsLoadingMovies] = useState(true);
+  // const [isLoadingMovies, setIsLoadingMovies] = useState(true);
   const [isLoadingComingSoon, setIsLoadingComingSoon] = useState(true);
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -238,8 +238,9 @@ useEffect(() => {
         fetchTheatres,
         theatres,
         fetchPriceRanges,priceRanges,
-        comingSoonMovies,isLoadingMovies,
-        isLoadingComingSoon
+        comingSoonMovies,
+        isLoadingComingSoon,
+        // isLoadingMovies,
       }}
     >
       {children}
