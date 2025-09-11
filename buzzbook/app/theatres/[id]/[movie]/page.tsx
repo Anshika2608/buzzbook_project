@@ -35,6 +35,7 @@ export default function TheatrePage() {
     fetchPriceRanges,
     priceRanges = [],
     fetchFilteredTheatresPrice,
+    fetchUniqueShowTime
   } = useLocation();
   const router = useRouter();
 
@@ -42,7 +43,7 @@ export default function TheatrePage() {
   const [selectedLanguage, setSelectedLanguage] = useState<string>("all");
   const [selectedFormat, setSelectedFormat] = useState<string>("all");
   const [priceRange, setPriceRange] = useState<string>("all");
-
+const[times,setTimes] = useState<string>("all");
   const movieName = movieDet?.title ?? "";
 
   const generateDates = () => {
@@ -80,17 +81,24 @@ export default function TheatrePage() {
     }
   };
 
-  useEffect(() => {
-    if (city && movieName) {
-      fetchPriceRanges(movieName, city);
+useEffect(() => {
+  if (city && movieName) {
+    // Always fetch price ranges
+    fetchPriceRanges(movieName, city);
 
-      if (priceRange === "all") {
-        fetchTheatres(movieName, city);
-      } else {
-        fetchFilteredTheatresPrice(movieName, city, priceRange);
-      }
+    if (times !== "all") {
+      // Fetch theatres filtered by selected time
+      fetchUniqueShowTime(city, times, movieName);
+    } else if (priceRange !== "all") {
+      // Fetch theatres filtered by price
+      fetchFilteredTheatresPrice(movieName, city, priceRange);
+    } else {
+      // Fetch all theatres
+      fetchTheatres(movieName, city);
     }
-  }, [movieName, city, priceRange]);
+  }
+}, [movieName, city, priceRange, times]);
+
 
   if (!movieName) {
     return (
@@ -179,8 +187,8 @@ export default function TheatrePage() {
             </SelectTrigger>
             <SelectContent className="rounded-xl border-slate-700 bg-slate-800 text-slate-200">
               <SelectItem value="all">All Languages</SelectItem>
-              {(movieDet?.language ?? []).map((lang) => (
-                <SelectItem key={lang} value={lang}>
+              {(movieDet?.language ?? []).map((lang,i) => (
+                <SelectItem key={i} value={lang}>
                   {lang}
                 </SelectItem>
               ))}
@@ -220,16 +228,19 @@ export default function TheatrePage() {
             </SelectContent>
           </Select>
 
-          <Select>
-            <SelectTrigger className="rounded-xl border-slate-700 bg-slate-800 text-slate-200 focus:ring-purple-500">
-              <SelectValue placeholder="Preferred Time" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl border-slate-700 bg-slate-800 text-slate-200">
-              <SelectItem value="morning">Morning (6AM - 12PM)</SelectItem>
-              <SelectItem value="afternoon">Afternoon (12PM - 6PM)</SelectItem>
-              <SelectItem value="evening">Evening (6PM - 12AM)</SelectItem>
-            </SelectContent>
-          </Select>
+ <Select value={times} onValueChange={setTimes}>
+      <SelectTrigger className="rounded-xl border-slate-700 bg-slate-800 text-slate-200 focus:ring-purple-500">
+        <SelectValue placeholder="Preferred Timing" />
+      </SelectTrigger>
+      <SelectContent className="rounded-xl border-slate-700 bg-slate-800 text-slate-200">
+        <SelectItem value="all">All Timings</SelectItem>
+        <SelectItem value="morning">Morning (6AM - 12PM)</SelectItem>
+        <SelectItem value="afternoon">Afternoon (12PM - 6PM)</SelectItem>
+        <SelectItem value="evening">Evening (6PM - 12AM)</SelectItem>
+        <SelectItem value="night">Night (12AM - 6AM)</SelectItem>
+      </SelectContent>
+    </Select>
+         
         </div>
 
         {/* Theatres List */}
