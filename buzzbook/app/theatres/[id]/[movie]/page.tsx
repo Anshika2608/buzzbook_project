@@ -25,6 +25,7 @@ import {
   BadgeCheck,
   Ban,
 } from "lucide-react";
+import MapModal from "@/components/modals/MapModal";
 
 export default function TheatrePage() {
   const {
@@ -44,6 +45,8 @@ export default function TheatrePage() {
   const [selectedFormat, setSelectedFormat] = useState<string>("all");
   const [priceRange, setPriceRange] = useState<string>("all");
 const[times,setTimes] = useState<string>("all");
+  const [mapOpen, setMapOpen] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const movieName = movieDet?.title ?? "";
 
   const generateDates = () => {
@@ -274,12 +277,18 @@ useEffect(() => {
                     <h3 className="mb-2 text-xl font-bold text-white">
                       {theatre.name}
                     </h3>
-                    {theatre.address && (
-                      <p className="mb-2 flex items-center gap-1 text-sm text-slate-400">
-                        <MapPin className="h-4 w-4 text-purple-400" />
-                        {theatre.address}
-                      </p>
-                    )}
+                   {theatre.address && (
+                <p
+                  onClick={() => {
+                    setSelectedAddress(theatre.address);
+                    setMapOpen(true);
+                  }}
+                  className="mb-2 flex cursor-pointer items-center gap-1 text-sm text-purple-400 hover:underline"
+                >
+                  <MapPin className="h-4 w-4" />
+                  {theatre.address}
+                </p>
+              )}
                     <p className="mt-1 text-xs text-slate-400">Contact: {theatre.contact}</p>
                     {/* Amenities */}
                     <div className="mt-4 flex flex-wrap gap-2">
@@ -334,6 +343,13 @@ useEffect(() => {
               </Card>
             ))
           )}
+           {selectedAddress && (
+        <MapModal
+          isOpen={mapOpen}
+          onClose={() => setMapOpen(false)}
+          address={selectedAddress}
+        />
+      )}
         </div>
       </div>
     </div>

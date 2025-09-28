@@ -44,7 +44,7 @@ import { createContext, useContext, useState, useEffect, ReactNode,useCallback }
 import axios from "axios";
 import { route } from "@/lib/api";
 import { Movie } from "@/app/types/movie";
-import { Theatre } from "@/app/types/theatre";
+import { SeatLayout, Theatre } from "@/app/types/theatre";
 import { CarouselMovie } from "@/app/types/movie";
 
 type LocationContextType = {
@@ -64,7 +64,8 @@ type LocationContextType = {
       comingSoonMovies: CarouselMovie[];
  isLoadingComingSoon: boolean;
 fetchUniqueShowTime: (city:string,selectedRange:string,movieTitle:string) => Promise<void>
-
+seatLayout:SeatLayout[],
+fetchSeatLayout:(theater_id:string,movie_title:string,showtime:string)=> Promise<void>
 
 };
 
@@ -82,12 +83,12 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
     const [isLoadingComingSoon, setIsLoadingComingSoon] = useState(true);
 
 
-
   // ✅ fetch movies in a city
   const fetchMovies = async (selectedCity: string) => {
     try {
       const res = await axios.get(`${route.movie}?location=${selectedCity}`);
       setMovies(res.data.movies || []);
+      console.log(res.data)
     } catch (err) {
       console.error("Error fetching movies", err);
       setMovies([]);
@@ -97,6 +98,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   //  fetch details for one movie
 const fetchMovieDetails = useCallback(async (id: string): Promise<Movie | null> => {
   try {
+    
     const res = await axios.get(`${route.movieDetails}${id}`);
     setMovieDet(res.data.movie);
     return res.data.movie;
@@ -210,7 +212,7 @@ const res = await axios.get(`${route.uniqueTime}`,{
   setIsLoadingComingSoon(true);
   try {
     const res = await axios.get(route.comingSoon);
-    console.log("Raw API response:", res.data);   // 👈 check API shape here
+     // 👈 check API shape here
 
     const transformed: CarouselMovie[] = (res.data.movies || []).map((movie: Movie) => ({
       _id: movie._id,
@@ -263,7 +265,7 @@ const res = await axios.get(`${route.uniqueTime}`,{
           fetchFilteredTheatresPrice,
           comingSoonMovies,
         isLoadingComingSoon,
-fetchUniqueShowTime
+fetchUniqueShowTime,
       }}
     >
       {children}
