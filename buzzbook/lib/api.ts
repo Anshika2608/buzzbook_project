@@ -13,6 +13,7 @@ export const route = {
     'showtime':api + 'showtime/get_Showtime',
     'priceRange': api + 'theater/prices',
     'theatreByPrice': api + 'theater/filterTheaters',
-    'uniqueTime': api + 'showtime/filterShowtime'
+    'uniqueTime': api + 'showtime/filterShowtime',
+    'seat' : api + 'theater/seat_Layout'
 
 }

@@ -38,3 +38,12 @@ export interface Location {
   country:string,
   state:string
 }
+
+export interface SeatLayout{
+  seat_number: string;
+  type: "REGULAR" | "VIP" | "PREMIUM"; 
+  is_booked: boolean;
+  is_held: boolean;
+  hold_expires_at: string | null;
+  _id: string;
+}

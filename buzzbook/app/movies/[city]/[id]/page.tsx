@@ -17,6 +17,7 @@ export default function MovieDetailPage() {
   const [isLiked, setIsLiked] = useState(false)
 
 useEffect(() => {
+  console.log(id)
   if (id && (!movie || movie._id !== id)) {
     fetchMovieDetails(id).then((data) => {
       if (data) setMovie(data);
