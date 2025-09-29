@@ -116,6 +116,7 @@ useEffect(() => {
     );
   }
 
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 font-sans text-white">
       {/* Header */}
@@ -328,6 +329,15 @@ useEffect(() => {
                           key={`${theatre._id}-${index}`}
                           variant="outline"
                           className="transform-gpu rounded-xl border-2 border-purple-600 bg-purple-800/50 p-4 text-center text-white transition-all hover:scale-105 hover:bg-purple-700"
+                                           onClick={() =>
+                  router.push(
+                    `/booking?theater_id=${theatre._id}&theatreName=${encodeURIComponent(
+                      theatre.name
+                    )}&movie_title=${encodeURIComponent(
+                      movieName
+                    )}&showtime=${showtime.time}&show_date=${selectedDate}` // ⬅️ take from state
+                  )
+                }
                         >
                           <div className="flex flex-col items-center">
                             <span className="text-sm font-bold sm:text-base">{showtime.time}</span>

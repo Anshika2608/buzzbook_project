@@ -6,6 +6,7 @@ import { AuthProvider } from "@/app/context/AuthContext"; // cleaner with tsconf
 import { LocationProvider } from "./context/LocationContext";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
+import { BookingProvider } from "./context/BookingContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,10 +33,12 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col bg-gray-900 text-white font-sans antialiased">
         <AuthProvider>
           <LocationProvider>
+            <BookingProvider>
             <Header />
             <main className="flex-grow">{children}</main>
             <Footer />
             <Toaster richColors position="top-right" />
+            </BookingProvider>
           </LocationProvider>
         </AuthProvider>
       </body>

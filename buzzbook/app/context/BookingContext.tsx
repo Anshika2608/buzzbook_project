@@ -1,7 +1,9 @@
+"use client"
 // context/BookingContext.tsx
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import axios from "axios";
 import { route } from "@/lib/api";
+import { log } from "console";
 
 // Define the shape of your context
 interface Seat {
@@ -35,7 +37,7 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
         params: { theater_id, movie_title, showtime,show_date },
       });
       setSeatLayout(res.data);
-      console.log("Raw API response:", res.data);
+      return res.data;
     } catch (err) {
       console.error("Error fetching seating layout", err);
       setSeatLayout([]);
