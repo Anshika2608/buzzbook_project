@@ -30,21 +30,31 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
   const [seatLayout, setSeatLayout] = useState<Seat[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchSeatLayout = async (theater_id: string, movie_title: string, showtime: string,show_date:string) => {
-    setIsLoading(true);
-    try {
-      const res = await axios.get(`${route.seat}`, {
-        params: { theater_id, movie_title, showtime,show_date },
-      });
-      setSeatLayout(res.data);
-      return res.data;
-    } catch (err) {
-      console.error("Error fetching seating layout", err);
-      setSeatLayout([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+const fetchSeatLayout = async (
+  theater_id: string,
+  movie_title: string,
+  showtime: string,
+  show_date: string
+) => {
+  setIsLoading(true);
+  try {
+    const res = await axios.get(`${route.seat}`, {
+      params: { theater_id, movie_title, showtime, show_date },
+    });
+    console.log("Fetched seating layout:", res.data);
+
+    // Flatten the 2D seating_layout array into a single array of seats
+    const layout = res.data.seating_layout?.flat() || [];
+    setSeatLayout(layout);
+    return layout;
+  } catch (err) {
+    console.error("Error fetching seating layout", err);
+    setSeatLayout([]);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <BookingContext.Provider value={{ seatLayout, isLoading, fetchSeatLayout }}>
