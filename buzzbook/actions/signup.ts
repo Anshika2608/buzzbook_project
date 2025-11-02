@@ -1,6 +1,6 @@
 "use server";
 
-import { SignupSchema,SignupFormData } from "@/lib/validation/SignUpschema";
+import { SignupSchema, SignupFormData } from "@/lib/validation/SignUpschema";
 import { route } from "@/lib/api";
 import axios from "axios";
 
@@ -19,19 +19,20 @@ export default async function register(formData: SignupFormData) {
   }
 
   try {
-    const { name, email, password,cpassword, recaptchaToken } = formData;
+    const { name, email, password, cpassword, recaptchaToken } = formData;
 
-    const { data, status } = await axios.post(route.register, {
-  name,
-  email,
-  password,
-  cpassword,
-  recaptchaToken,
-    });
-console.log("📡 Sending POST to:", route.register);
-    if (status === 201) {
-      return { success: true, data };
-    } else {
+    console.log("📡 Sending POST to:", route.register);
+
+    // ✅ Register user
+    const res = await axios.post(
+      route.register,
+      { name, email, password, cpassword, recaptchaToken },
+      { withCredentials: true }
+    );
+
+    const { data, status } = res;
+
+    if (status !== 201) {
       return {
         success: false,
         error: {
@@ -41,6 +42,27 @@ console.log("📡 Sending POST to:", route.register);
         },
       };
     }
+
+    // ✅ Auto login after successful registration
+    const loginRes = await axios.post(
+      route.login,
+      { email, password, recaptchaToken },
+      { withCredentials: true }
+    );
+
+    const { accessToken, user } = loginRes.data;
+
+    // ✅ store access token
+    if (accessToken) {
+      localStorage.setItem("accessToken", accessToken);
+    }
+
+    return {
+      success: true,
+      user,
+      accessToken,
+      message: "User registered & logged in successfully ✅",
+    };
   } catch (error: any) {
     return {
       success: false,
