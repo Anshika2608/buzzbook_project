@@ -1,11 +1,10 @@
-"use client"
-// context/BookingContext.tsx
-import React, { createContext, useContext, useState, ReactNode } from "react";
-import axios from "axios";
-import { route } from "@/lib/api";
-import { log } from "console";
+"use client";
 
-// Define the shape of your context
+import React, { createContext, useContext, useEffect, useState, useRef } from "react";
+import axios from "axios";
+import { io, Socket } from "socket.io-client";
+import { route } from "@/lib/api"
+
 interface Seat {
   seat_number: string;
   type: string;
@@ -15,53 +14,126 @@ interface Seat {
 interface BookingContextType {
   seatLayout: Seat[];
   isLoading: boolean;
- fetchSeatLayout: (theater_id: string, movie_title: string, showtime: string,show_date:string) => Promise<void>;
+  fetchSeatLayout: (theaterId: string, movieTitle: string, showtime: string, showDate: string) => Promise<void>;
+  holdSeats: (payload: HoldPayload) => Promise<void>;
 }
 
-// Create context with default empty values
-const BookingContext = createContext<BookingContextType>({
-  seatLayout: [],
-  isLoading: false,
-  fetchSeatLayout: async () => {},
-});
+interface HoldPayload {
+  theater_id: string;
+  movie_title: string;
+  showtime: string;
+  show_date: string;
+  seats: string[];
+}
 
-// Provider component
-export const BookingProvider = ({ children }: { children: ReactNode }) => {
+const BookingContext = createContext<BookingContextType | undefined>(undefined);
+
+export const BookingProvider = ({ children }: { children: React.ReactNode }) => {
   const [seatLayout, setSeatLayout] = useState<Seat[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const socketRef = useRef<Socket | null>(null);
 
-const fetchSeatLayout = async (
-  theater_id: string,
-  movie_title: string,
-  showtime: string,
-  show_date: string
-) => {
-  setIsLoading(true);
-  try {
-    const res = await axios.get(`${route.seat}`, {
-      params: { theater_id, movie_title, showtime, show_date },
+  // ✅ Connect to Socket.IO on mount
+  useEffect(() => {
+    const socket = io("https://buzzbook-server-dy0q.onrender.com", {
+      transports: ["websocket"],
     });
-    console.log("Fetched seating layout:", res.data);
 
-    // Flatten the 2D seating_layout array into a single array of seats
-    const layout = res.data.seating_layout?.flat() || [];
-    setSeatLayout(layout);
-    return layout;
-  } catch (err) {
-    console.error("Error fetching seating layout", err);
-    setSeatLayout([]);
-  } finally {
-    setIsLoading(false);
-  }
-};
+    socketRef.current = socket;
 
+    socket.on("connect", () => {
+      console.log("✅ Connected to Socket.IO server");
+    });
+
+    socket.on("disconnect", () => {
+      console.log("🔌 Disconnected from Socket.IO server");
+    });
+
+    // 🔁 Real-time seat hold updates
+    socket.on("seatHeld", (data) => {
+      console.log("📩 seatHeld event received:", data);
+      // Optionally re-fetch seat layout to update UI
+      setSeatLayout((prev) =>
+        prev.map((seat) =>
+          data.seats.includes(seat.seat_number)
+            ? { ...seat, is_booked: true }
+            : seat
+        )
+      );
+    });
+
+    // 🔁 Real-time confirmed booking updates
+    socket.on("seatsBooked", (data) => {
+      console.log("🎟️ seatsBooked event received:", data);
+      setSeatLayout((prev) =>
+        prev.map((seat) =>
+          data.bookedSeats.includes(seat.seat_number)
+            ? { ...seat, is_booked: true }
+            : seat
+        )
+      );
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  // 🎟️ Fetch Seat Layout from API
+  const fetchSeatLayout = async (
+    theaterId: string,
+    movieTitle: string,
+    showtime: string,
+    showDate: string
+  ) => {
+    setIsLoading(true);
+    try {
+      const res = await axios.get(
+        `${route.seat}`,
+        {
+          params: {
+            theater_id: theaterId,
+            movie_title: movieTitle,
+            showtime,
+            show_date: showDate,
+          },
+        }
+      );
+       const layout = res.data.seating_layout?.flat() || [];
+     setSeatLayout(layout);
+      console.log("res",layout )
+    } catch (error) {
+      console.error("❌ Error fetching seat layout:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 💺 Hold Seats (API call triggers backend emit)
+  const holdSeats = async (payload: HoldPayload) => {
+    try {
+      const res = await axios.post(
+        `${route.hold}`,
+        payload,
+        { withCredentials: true }
+      );
+      console.log("✅ Hold seats success:", res.data);
+    } catch (error: any) {
+      console.error("❌ Error holding seats:", error.response?.data || error.message);
+    }
+  };
 
   return (
-    <BookingContext.Provider value={{ seatLayout, isLoading, fetchSeatLayout }}>
+    <BookingContext.Provider value={{ seatLayout, isLoading, fetchSeatLayout, holdSeats }}>
       {children}
     </BookingContext.Provider>
   );
 };
 
-// Custom hook for easy usage
-export const useBooking = () => useContext(BookingContext);
+export const useBooking = () => {
+  const context = useContext(BookingContext);
+  if (!context) {
+    throw new Error("useBooking must be used inside BookingProvider");
+  }
+  return context;
+};
