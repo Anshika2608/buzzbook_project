@@ -346,7 +346,8 @@ export default function SeatBookingPage() {
   };
 
   // 💳 Handle Proceed to Payment — integrate holdSeats API
-const handleProceed = () => {
+// 💳 Handle Proceed to Snack Page (after seat hold)
+const handleProceed = async () => {
   const payload = {
     theater_id: theaterId!,
     movie_title: movieTitle!,
@@ -354,9 +355,16 @@ const handleProceed = () => {
     show_date: showDate!,
     seats: selectedSeats.map((s) => s.seat_number),
   };
-  holdSeats(payload);
-  console.log("🎟️ Hold request sent:", payload);
+
+  await holdSeats(payload);
+
+  router.push(
+    `/snacks?theater_id=${theaterId}&movie_title=${movieTitle}&showtime=${showtime}&show_date=${showDate}&seats=${payload.seats.join(",")}`
+  );
+
+  console.log("🎟️ Seats held & redirecting to snacks:", payload);
 };
+
   const totalPrice = selectedSeats.reduce((sum, seat) => sum + (seat.price || 0), 0);
 
   if (!theaterId || !movieTitle || !showtime || !showDate) {

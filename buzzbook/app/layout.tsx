@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
-import { AuthProvider } from "@/app/context/AuthContext"; // cleaner with tsconfig baseUrl or path alias
+import { AuthProvider } from "@/app/context/AuthContext"; 
 import { LocationProvider } from "./context/LocationContext";
+import { SnackProvider } from "./context/SnackContext";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { BookingProvider } from "./context/BookingContext";
@@ -34,10 +35,12 @@ export default function RootLayout({
         <AuthProvider>
           <LocationProvider>
             <BookingProvider>
+              <SnackProvider>
             <Header />
             <main className="flex-grow">{children}</main>
             <Footer />
             <Toaster richColors position="top-right" />
+              </SnackProvider>
             </BookingProvider>
           </LocationProvider>
         </AuthProvider>
