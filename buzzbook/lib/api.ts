@@ -5,6 +5,7 @@ export const route = {
     'forgot_password' : api + 'auth/sendpasswordLink',
     'logout' : api + 'auth/logout',
     'validUser':api+'auth/validUser',
+    'refreshToken':api+'auth/refresh-token',
     'location' : api + 'location/',
     'movie': api + 'movie/getMovie/',
     'movieDetails' : api + 'movie/movieDetails/',
@@ -16,6 +17,6 @@ export const route = {
     'uniqueTime': api + 'showtime/filterShowtime',
     'seat' : api + 'theater/seat_Layout',
     'hold' : api + 'booking/hold-seats',
-    'snacks' : api + 'snack/snack_list'
+    'snacks' : api + 'snack/snack_list/'
 
 }

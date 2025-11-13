@@ -1,10 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useRef } from "react";
-import axios from "axios";
 import { io, Socket } from "socket.io-client";
 import { route } from "@/lib/api"
-
+import api from "@/lib/interceptor";
 interface Seat {
   seat_number: string;
   type: string;
@@ -88,7 +87,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
   ) => {
     setIsLoading(true);
     try {
-      const res = await axios.get(
+      const res = await api.get(
         `${route.seat}`,
         {
           params: {
@@ -112,7 +111,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
   // 💺 Hold Seats (API call triggers backend emit)
   const holdSeats = async (payload: HoldPayload) => {
     try {
-      const res = await axios.post(
+      const res = await api.post(
         `${route.hold}`,
         payload,
         { withCredentials: true }

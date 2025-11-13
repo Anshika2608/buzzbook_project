@@ -1,7 +1,5 @@
-
-import axios from "axios";
 import { ResetPasswordFormData, ResetPasswordSchema } from "@/lib/validation/ResetSchema";
-
+import api from "@/lib/interceptor"
 export default async function resetPassword(
   data: ResetPasswordFormData,
   id: string,
@@ -18,7 +16,7 @@ export default async function resetPassword(
   }
 
   try {
-    const res = await axios.post(
+    const res = await api.post(
       `https://buzzbook-server-dy0q.onrender.com/auth/${id}/${token}`,
       {
         passwords: data.password,

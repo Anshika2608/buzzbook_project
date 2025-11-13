@@ -64,7 +64,7 @@ const [showPassword, setShowPassword] = useState(false);
         toast.success("✅ Logged in successfully!");
         form.reset();
         await refreshUser();
-        router.push("/dashboard");
+        router.push("/home");
       } else if (res.fieldErrors) {
         Object.entries(res.fieldErrors).forEach(([field, message]) =>
           form.setError(field as keyof LoginFormData, { message })

@@ -1,7 +1,7 @@
 "use client";
 import React, { createContext, useContext, useState } from "react";
-import axios from "axios";
-
+import api from "@/lib/interceptor";
+import { route } from "@/lib/api"
 interface SnackOption {
   unit: string;
   price: number;
@@ -33,20 +33,11 @@ export const SnackProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchSnacks = async (theaterId: string) => {
   if (!theaterId) return console.error("❌ Missing theatreId for snacks fetch!");
-
-  const token = localStorage.getItem("token"); 
-
   setIsLoading(true);
 
   try {
-    const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_API}snack/snack_list/${theaterId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        withCredentials: true, // Optional: send cookies too if required
-      }
+    const res = await api.get(
+      `${route.snacks}${theaterId}`
     );
 
     setSnacks(res.data?.snacks || []);

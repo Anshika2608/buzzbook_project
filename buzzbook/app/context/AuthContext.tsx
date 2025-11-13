@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import axios from "axios";
+import api from "@/lib/interceptor";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { route } from "@/lib/api"
@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const refreshUser = async () => {
     try {
-      const res = await axios.get(route.validUser, {
+      const res = await api.get(route.validUser, {
         withCredentials: true,
       });
 
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     try {
-      await axios.get(route.logout, {
+      await api.get(route.logout, {
         withCredentials: true,
       });
 

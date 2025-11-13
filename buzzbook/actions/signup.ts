@@ -2,7 +2,7 @@
 
 import { SignupSchema, SignupFormData } from "@/lib/validation/SignUpschema";
 import { route } from "@/lib/api";
-import axios from "axios";
+import api from "@/lib/interceptor"
 
 export default async function register(formData: SignupFormData) {
   const validationResult = SignupSchema.safeParse(formData);
@@ -24,7 +24,7 @@ export default async function register(formData: SignupFormData) {
     console.log("📡 Sending POST to:", route.register);
 
     // ✅ Register user
-    const res = await axios.post(
+    const res = await api.post(
       route.register,
       { name, email, password, cpassword, recaptchaToken },
       { withCredentials: true }
@@ -44,7 +44,7 @@ export default async function register(formData: SignupFormData) {
     }
 
     // ✅ Auto login after successful registration
-    const loginRes = await axios.post(
+    const loginRes = await api.post(
       route.login,
       { email, password, recaptchaToken },
       { withCredentials: true }
