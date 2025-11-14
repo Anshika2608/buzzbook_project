@@ -8,11 +8,13 @@ interface Seat {
   seat_number: string;
   type: string;
   is_booked: boolean;
+  is_held: boolean;
 }
 
 interface BookingContextType {
   seatLayout: Seat[];
   isLoading: boolean;
+  seatPrices: Record<string, number>;
   fetchSeatLayout: (theaterId: string, movieTitle: string, showtime: string, showDate: string) => Promise<void>;
   holdSeats: (payload: HoldPayload) => Promise<void>;
 }
@@ -30,6 +32,7 @@ const BookingContext = createContext<BookingContextType | undefined>(undefined);
 export const BookingProvider = ({ children }: { children: React.ReactNode }) => {
   const [seatLayout, setSeatLayout] = useState<Seat[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [seatPrices, setSeatPrices] = useState<Record<string, number>>({});
   const socketRef = useRef<Socket | null>(null);
 
   // ✅ Connect to Socket.IO on mount
@@ -55,7 +58,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
       setSeatLayout((prev) =>
         prev.map((seat) =>
           data.seats.includes(seat.seat_number)
-            ? { ...seat, is_booked: true }
+            ? { ...seat, is_held: true }
             : seat
         )
       );
@@ -72,6 +75,19 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
         )
       );
     });
+   //Real time Seat Release Updates
+    socket.on("seatReleased", (data) => {
+      console.log("♻ seatReleased event:", data);
+
+      setSeatLayout((prev) =>
+        prev.map((seat) =>
+          data.seats.includes(seat.seat_number)
+            ? { ...seat, is_held: false }   // ⭐ un-hold
+            : seat
+        )
+      );
+    });
+
 
     return () => {
       socket.disconnect();
@@ -98,9 +114,11 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
           },
         }
       );
-       const layout = res.data.seating_layout?.flat() || [];
-     setSeatLayout(layout);
-      console.log("res",layout )
+      const layout = res.data.seating_layout?.flat() || [];
+      const prices = res.data.prices || {};
+      setSeatPrices(prices);
+      setSeatLayout(layout);
+      console.log("💰 Prices received:", seatPrices);
     } catch (error) {
       console.error("❌ Error fetching seat layout:", error);
     } finally {
@@ -123,7 +141,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
   };
 
   return (
-    <BookingContext.Provider value={{ seatLayout, isLoading, fetchSeatLayout, holdSeats }}>
+    <BookingContext.Provider value={{ seatLayout, isLoading, seatPrices, fetchSeatLayout, holdSeats }}>
       {children}
     </BookingContext.Provider>
   );

@@ -17,6 +17,8 @@ export const route = {
     'uniqueTime': api + 'showtime/filterShowtime',
     'seat' : api + 'theater/seat_Layout',
     'hold' : api + 'booking/hold-seats',
-    'snacks' : api + 'snack/snack_list/'
+    'snacks' : api + 'snack/snack_list/',
+    'createPayment':api+'payment/create-order',
+    'verifyPayment':api+'payment/capture-order'
 
 }
