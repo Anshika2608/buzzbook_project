@@ -30,6 +30,7 @@ export interface Movie {
   certification:string
   industry:string
   Type:string
+  theaterId:string
 
 }
 
@@ -43,4 +44,7 @@ export interface CarouselMovie {
     poster: string; 
     releaseDate: string;
     description?: string;
+}
+export interface Wishlist {
+  _id:string
 }

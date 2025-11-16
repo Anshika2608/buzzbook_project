@@ -7,13 +7,17 @@ import Link from "next/link"
 import { useLocation } from "@/app/context/LocationContext"
 import { AspectRatio } from "../ui/aspect-ratio"
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
+import { Heart } from "lucide-react"
 
 interface HomeMovieCardProps {
   movie: Movie
 }
 
 export default function HomeMovieCard({ movie }: HomeMovieCardProps) {
-  const { city } = useLocation()
+  const { city, addToWishlist,wishlistMovies } = useLocation()
+const isInWishlist = wishlistMovies.some(
+  (m) => m._id === movie._id
+);
 
   const getDisplayLanguages = (languages: string[]) => {
     if (languages.length <= 2) return { display: languages, hidden: [] }
@@ -70,9 +74,30 @@ export default function HomeMovieCard({ movie }: HomeMovieCardProps) {
       </CardContent>
 
       <CardHeader className=" flex-1 space-y-2 p-4 sm:p-5">
-        <h3 className="line-clamp-2 text-base font-bold leading-tight text-white transition-colors duration-300 group-hover:text-blue-100 sm:text-lg">
-          {movie.title}
-        </h3>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="flex-1 line-clamp-2 text-base font-bold leading-tight text-white transition-colors duration-300 group-hover:text-blue-100 sm:text-lg mb-2">
+            {movie.title}
+          </h3>
+          {/* <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleWishlist}
+            className={`h-10 w-10 rounded-full border border-white/20 backdrop-blur-md transition-all duration-300 ${isLiked ? "bg-red-500/20 text-red-400" : "bg-white/10 text-white hover:bg-white/20"}`}
+          >
+            <Heart className={`h-4 w-4 ${isLiked ? "fill-current" : ""}`} />
+          </Button> */}
+          <button
+  onClick={() => addToWishlist(movie._id,movie.theaterId ?? null)}
+  className="p-1 rounded-full border border-white/10 hover:bg-white/10 transition"
+>
+  <Heart
+    className={`h-4 w-4 sm:h-5 sm:w-5 ${
+      isInWishlist ? "text-red-500 fill-red-500" : "text-white"
+    }`}
+  />
+</button>
+
+        </div>
 
         <p
           className="line-clamp-1 text-xs text-slate-400 sm:text-sm"
