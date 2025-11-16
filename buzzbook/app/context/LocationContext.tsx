@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { route } from "@/lib/api";
-import { Movie } from "@/app/types/movie";
+import { Movie, Wishlist } from "@/app/types/movie";
 import { SeatLayout, Theatre } from "@/app/types/theatre";
 import { CarouselMovie } from "@/app/types/movie";
 import api from "@/lib/interceptor";
@@ -22,7 +22,10 @@ type LocationContextType = {
   comingSoonMovies: CarouselMovie[];
   isLoadingComingSoon: boolean;
   fetchUniqueShowTime: (city: string, selectedRange: string, movieTitle: string) => Promise<void>
-
+  addToWishlist: (movieId: string, theaterId: string | null) => Promise<void>;
+  wishlistMovies: Wishlist[];
+   wishlistTheater: Wishlist[];
+  getWishlist:()=>Promise<void>;
 };
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -37,6 +40,8 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
   const [priceRanges, setPriceRanges] = useState<string[]>([])
   const [comingSoonMovies, setComingSoonMovies] = useState<CarouselMovie[]>([]);
   const [isLoadingComingSoon, setIsLoadingComingSoon] = useState(true);
+  const [wishlistMovies, setWishlistMovies] = useState<Wishlist[]>([]);
+  const [wishlistTheater, setWishlistTheater] = useState<Wishlist[]>([]);
 
 
   // ✅ fetch movies in a city
@@ -57,6 +62,7 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
 
       const res = await api.get(`${route.movieDetails}${id}`);
       setMovieDet(res.data.movie);
+      getWishlist();
       return res.data.movie;
     } catch (err) {
       console.error("Error fetching movie details", err);
@@ -163,6 +169,39 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
     fetchMovies(city);
   }, [city]);
 
+//wishlist
+const addToWishlist = async (movieId: string, theaterId: string | null) => {
+  console.log("thaeater",theaterId)
+  try {
+    const res = await api.post(`${route.wishlist}/add`, {
+      movieId,
+      theaterId,
+    });
+    await getWishlist();
+    return res.data;
+  } catch (err: any) {
+    console.error("❌ Error adding to wishlist", err.response?.data || err.message);
+    throw err;
+  }
+};
+//get wishlist 
+const getWishlist = async () => {
+  try {
+    const res = await api.get(`${route.wishlist}`);
+    setWishlistMovies(res.data.wishlist.movies || []);
+    setWishlistTheater(res.data.wishlist.theaters || [])
+    
+  } catch (err: any) {
+    console.error("❌ Error fetching wishlist", err.response?.data || err.message);
+    setWishlistMovies([]);
+    setWishlistTheater([])
+  }
+};
+
+useEffect(() => {
+  getWishlist(); 
+}, []);
+
   //fetch coming soon 
   const fetchComingSoonMovies = async () => {
     setIsLoadingComingSoon(true);
@@ -222,7 +261,11 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
         fetchFilteredTheatresPrice,
         comingSoonMovies,
         isLoadingComingSoon,
-        fetchUniqueShowTime
+        fetchUniqueShowTime,
+        addToWishlist,
+        wishlistMovies,
+        getWishlist,
+        wishlistTheater
       }}
     >
       {children}

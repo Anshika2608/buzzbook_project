@@ -19,6 +19,7 @@ export const route = {
     'hold' : api + 'booking/hold-seats',
     'snacks' : api + 'snack/snack_list/',
     'createPayment':api+'payment/create-order',
-    'verifyPayment':api+'payment/capture-order'
+    'verifyPayment':api+'payment/capture-order',
+    'wishlist':api + 'wishlist'
 
 }

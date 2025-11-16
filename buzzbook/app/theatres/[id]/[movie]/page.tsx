@@ -24,6 +24,7 @@ import {
   Info,
   BadgeCheck,
   Ban,
+  Heart
 } from "lucide-react";
 import MapModal from "@/components/modals/MapModal";
 
@@ -36,7 +37,7 @@ export default function TheatrePage() {
     fetchPriceRanges,
     priceRanges = [],
     fetchFilteredTheatresPrice,
-    fetchUniqueShowTime
+    fetchUniqueShowTime, wishlistTheater, addToWishlist
   } = useLocation();
   const router = useRouter();
 
@@ -44,10 +45,11 @@ export default function TheatrePage() {
   const [selectedLanguage, setSelectedLanguage] = useState<string>("all");
   const [selectedFormat, setSelectedFormat] = useState<string>("all");
   const [priceRange, setPriceRange] = useState<string>("all");
-const[times,setTimes] = useState<string>("all");
+  const [times, setTimes] = useState<string>("all");
   const [mapOpen, setMapOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const movieName = movieDet?.title ?? "";
+  console.log(theatres)
 
   const generateDates = () => {
     return Array.from({ length: 7 }).map((_, i) => {
@@ -84,23 +86,23 @@ const[times,setTimes] = useState<string>("all");
     }
   };
 
-useEffect(() => {
-  if (city && movieName) {
-    // Always fetch price ranges
-    fetchPriceRanges(movieName, city);
+  useEffect(() => {
+    if (city && movieName) {
+      // Always fetch price ranges
+      fetchPriceRanges(movieName, city);
 
-    if (times !== "all") {
-      // Fetch theatres filtered by selected time
-      fetchUniqueShowTime(city, times, movieName);
-    } else if (priceRange !== "all") {
-      // Fetch theatres filtered by price
-      fetchFilteredTheatresPrice(movieName, city, priceRange);
-    } else {
-      // Fetch all theatres
-      fetchTheatres(movieName, city);
+      if (times !== "all") {
+        // Fetch theatres filtered by selected time
+        fetchUniqueShowTime(city, times, movieName);
+      } else if (priceRange !== "all") {
+        // Fetch theatres filtered by price
+        fetchFilteredTheatresPrice(movieName, city, priceRange);
+      } else {
+        // Fetch all theatres
+        fetchTheatres(movieName, city);
+      }
     }
-  }
-}, [movieName, city, priceRange, times]);
+  }, [movieName, city, priceRange, times]);
 
 
   if (!movieName) {
@@ -165,11 +167,10 @@ useEffect(() => {
               <Button
                 key={date.date}
                 variant={selectedDate === date.date ? "default" : "outline"}
-                className={`flex min-w-[70px] flex-col items-center rounded-xl p-3 shadow-lg transition-transform hover:scale-105 ${
-                  selectedDate === date.date
-                    ? "bg-purple-600 text-white shadow-purple-500/30 hover:bg-purple-700"
-                    : "border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
-                }`}
+                className={`flex min-w-[70px] flex-col items-center rounded-xl p-3 shadow-lg transition-transform hover:scale-105 ${selectedDate === date.date
+                  ? "bg-purple-600 text-white shadow-purple-500/30 hover:bg-purple-700"
+                  : "border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
+                  }`}
                 onClick={() => setSelectedDate(date.date)}
               >
                 <span className="text-xs font-medium">{date.day}</span>
@@ -191,7 +192,7 @@ useEffect(() => {
             </SelectTrigger>
             <SelectContent className="rounded-xl border-slate-700 bg-slate-800 text-slate-200">
               <SelectItem value="all">All Languages</SelectItem>
-              {(movieDet?.language ?? []).map((lang,i) => (
+              {(movieDet?.language ?? []).map((lang, i) => (
                 <SelectItem key={i} value={lang}>
                   {lang}
                 </SelectItem>
@@ -232,24 +233,25 @@ useEffect(() => {
             </SelectContent>
           </Select>
 
- <Select value={times} onValueChange={setTimes}>
-      <SelectTrigger className="rounded-xl border-slate-700 bg-slate-800 text-slate-200 focus:ring-purple-500">
-        <SelectValue placeholder="Preferred Timing" />
-      </SelectTrigger>
-      <SelectContent className="rounded-xl border-slate-700 bg-slate-800 text-slate-200">
-        <SelectItem value="all">All Timings</SelectItem>
-        <SelectItem value="morning">Morning (6AM - 12PM)</SelectItem>
-        <SelectItem value="afternoon">Afternoon (12PM - 6PM)</SelectItem>
-        <SelectItem value="evening">Evening (6PM - 12AM)</SelectItem>
-        <SelectItem value="night">Night (12AM - 6AM)</SelectItem>
-      </SelectContent>
-    </Select>
-         
+          <Select value={times} onValueChange={setTimes}>
+            <SelectTrigger className="rounded-xl border-slate-700 bg-slate-800 text-slate-200 focus:ring-purple-500">
+              <SelectValue placeholder="Preferred Timing" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-slate-700 bg-slate-800 text-slate-200">
+              <SelectItem value="all">All Timings</SelectItem>
+              <SelectItem value="morning">Morning (6AM - 12PM)</SelectItem>
+              <SelectItem value="afternoon">Afternoon (12PM - 6PM)</SelectItem>
+              <SelectItem value="evening">Evening (6PM - 12AM)</SelectItem>
+              <SelectItem value="night">Night (12AM - 6AM)</SelectItem>
+            </SelectContent>
+          </Select>
+
         </div>
 
         {/* Theatres List */}
         <div className="space-y-6">
           {theatres?.length === 0 ? (
+
             <Card className="rounded-2xl border-slate-700/50 bg-slate-800/60 backdrop-blur-xl">
               <CardContent className="p-12 text-center">
                 <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-purple-500/20">
@@ -267,99 +269,118 @@ useEffect(() => {
               </CardContent>
             </Card>
           ) : (
-            theatres?.map((theatre) => (
-              <Card
-                key={theatre._id}
-                className="rounded-2xl border-slate-700/50 bg-slate-800/60 p-6 backdrop-blur-xl transition-all hover:shadow-xl sm:p-8"
-              >
-                <div className="flex flex-col gap-6 lg:flex-row lg:justify-between">
-                  {/* Left Column: Theatre Info & Amenities */}
-                  <div className="flex-1">
-                    <h3 className="mb-2 text-xl font-bold text-white">
-                      {theatre.name}
-                    </h3>
-                   {theatre.address && (
-                <p
-                  onClick={() => {
-                    setSelectedAddress(theatre.address);
-                    setMapOpen(true);
-                  }}
-                  className="mb-2 flex cursor-pointer items-center gap-1 text-sm text-purple-400 hover:underline"
+            theatres?.map((theatre) => {
+             const isTheaterInWishlist =
+    Array.isArray(wishlistTheater) &&
+    wishlistTheater.some((t) => {
+      console.log("Wishlist Theater ID:", t._id);
+      console.log("Current Theatre ID:", theatre._id);
+      console.log("Match:", t._id === theatre._id);
+      console.log("----------------");
+      return t._id === theatre._id;
+    });
+
+              return (
+                <Card
+                  key={theatre._id}
+                  className="rounded-2xl border-slate-700/50 bg-slate-800/60 p-6 backdrop-blur-xl transition-all hover:shadow-xl sm:p-8"
                 >
-                  <MapPin className="h-4 w-4" />
-                  {theatre.address}
-                </p>
-              )}
-                    <p className="mt-1 text-xs text-slate-400">Contact: {theatre.contact}</p>
-                    {/* Amenities */}
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {theatre.facilities.map((amenity) => (
-                        <span
-                          key={amenity}
-                          className="flex items-center gap-2 rounded-full border border-slate-600 bg-slate-700/50 px-3 py-1.5 text-xs text-slate-200"
+                  <div className="flex flex-col gap-6 lg:flex-row lg:justify-between">
+                    {/* Left Column: Theatre Info & Amenities */}
+                    <div className="flex-1">
+                      <h3 className="mb-2 text-xl font-bold text-white">
+                        {theatre.name}
+                      </h3><button
+                        onClick={() => addToWishlist(null, theatre._id)}
+                        className="p-1.5 rounded-full border border-white/10 hover:bg-white/10 transition"
+                      >
+                        <Heart
+                          className={`h-5 w-5 sm:h-6 sm:w-6 ${isTheaterInWishlist ? "text-red-500 fill-red-500" : "text-white"
+                            }`}
+                        />
+                      </button>
+                      {theatre.address && (
+                        <p
+                          onClick={() => {
+                            setSelectedAddress(theatre.address);
+                            setMapOpen(true);
+                          }}
+                          className="mb-2 flex cursor-pointer items-center gap-1 text-sm text-purple-400 hover:underline"
                         >
-                          {getAmenityIcon(amenity)}
-                          {amenity}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Right Column: Showtimes & Policy */}
-                  <div className="flex w-full flex-col justify-between items-end gap-4 lg:w-fit lg:flex-shrink-0">
-                    {/* Cancellation Policy */}
-                    <div className="flex items-center gap-2 rounded-xl bg-slate-700/50 p-2 text-xs text-slate-300 w-48 ">
-                      {theatre.cancellationAvailable ? (
-                        <>
-                          <BadgeCheck className="h-4 w-4 text-green-400" />
-                          <span className="font-medium text-green-400">Cancellation available</span>
-                        </>
-                      ) : (
-                        <>
-                          <Ban className="h-4 w-4 text-yellow-300" />
-                          <span className="font-medium text-yellow-300">Cancellation not available</span>
-                        </>
+                          <MapPin className="h-4 w-4" />
+                          {theatre.address}
+                        </p>
                       )}
+                      <p className="mt-1 text-xs text-slate-400">Contact: {theatre.contact}</p>
+                      {/* Amenities */}
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {theatre.facilities.map((amenity) => (
+                          <span
+                            key={amenity}
+                            className="flex items-center gap-2 rounded-full border border-slate-600 bg-slate-700/50 px-3 py-1.5 text-xs text-slate-200"
+                          >
+                            {getAmenityIcon(amenity)}
+                            {amenity}
+                          </span>
+                        ))}
+                      </div>
                     </div>
 
-                    {/* Showtimes */}
-                    <div className="flex flex-wrap justify-end gap-3 lg:justify-start">
-                      {theatre.showtimes?.map((showtime, index) => (
-                        <Button
-                          key={`${theatre._id}-${index}`}
-                          variant="outline"
-                          className="transform-gpu rounded-xl border-2 border-purple-600 bg-purple-800/50 p-4 text-center text-white transition-all hover:scale-105 hover:bg-purple-700"
-                                           onClick={() =>
-                  router.push(
-                    `/booking?theater_id=${theatre._id}&theatreName=${encodeURIComponent(
-                      theatre.name
-                    )}&movie_title=${encodeURIComponent(
-                      movieName
-                    )}&showtime=${showtime.time}&show_date=${selectedDate}` // ⬅️ take from state
-                  )
-                }
-                        >
-                          <div className="flex flex-col items-center">
-                            <span className="text-sm font-bold sm:text-base">{showtime.time}</span>
-                            {/* <span className="text-xs text-slate-300">
+                    {/* Right Column: Showtimes & Policy */}
+                    <div className="flex w-full flex-col justify-between items-end gap-4 lg:w-fit lg:flex-shrink-0">
+                      {/* Cancellation Policy */}
+                      <div className="flex items-center gap-2 rounded-xl bg-slate-700/50 p-2 text-xs text-slate-300 w-48 ">
+                        {theatre.cancellationAvailable ? (
+                          <>
+                            <BadgeCheck className="h-4 w-4 text-green-400" />
+                            <span className="font-medium text-green-400">Cancellation available</span>
+                          </>
+                        ) : (
+                          <>
+                            <Ban className="h-4 w-4 text-yellow-300" />
+                            <span className="font-medium text-yellow-300">Cancellation not available</span>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Showtimes */}
+                      <div className="flex flex-wrap justify-end gap-3 lg:justify-start">
+                        {theatre.showtimes?.map((showtime, index) => (
+                          <Button
+                            key={`${theatre._id}-${index}`}
+                            variant="outline"
+                            className="transform-gpu rounded-xl border-2 border-purple-600 bg-purple-800/50 p-4 text-center text-white transition-all hover:scale-105 hover:bg-purple-700"
+                            onClick={() =>
+                              router.push(
+                                `/booking?theater_id=${theatre._id}&theatreName=${encodeURIComponent(
+                                  theatre.name
+                                )}&movie_title=${encodeURIComponent(
+                                  movieName
+                                )}&showtime=${showtime.time}&show_date=${selectedDate}` // ⬅️ take from state
+                              )
+                            }
+                          >
+                            <div className="flex flex-col items-center">
+                              <span className="text-sm font-bold sm:text-base">{showtime.time}</span>
+                              {/* <span className="text-xs text-slate-300">
                               {showtime.isFillingFast ? "Filling Fast" : "Available"}
                             </span> */}
-                          </div>
-                        </Button>
-                      ))}
+                            </div>
+                          </Button>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Card>
-            ))
+                </Card>)
+})
           )}
-           {selectedAddress && (
-        <MapModal
-          isOpen={mapOpen}
-          onClose={() => setMapOpen(false)}
-          address={selectedAddress}
-        />
-      )}
+          {selectedAddress && (
+            <MapModal
+              isOpen={mapOpen}
+              onClose={() => setMapOpen(false)}
+              address={selectedAddress}
+            />
+          )}
         </div>
       </div>
     </div>
