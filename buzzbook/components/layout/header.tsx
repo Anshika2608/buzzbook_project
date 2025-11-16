@@ -6,22 +6,35 @@ import { Menu, X } from "lucide-react"
 import Link from "next/link"
 import Location from '@/components/modals/Location'
 import Image from "next/image"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
+import { useAuth } from "@/app/context/AuthContext"
+import { useLocation } from "@/app/context/LocationContext"
+
+
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { user, logout } = useAuth()
+  const { city, movies } = useLocation()
+
 
   return (
     <header className="absolute top-0 left-0 right-0 z-50 bg-transparent">
       <div className="container mx-auto px-6">
-        <div className="flex items-center justify-between py-6">
+        <div className="flex items-center justify-between pb-6 pt-4">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <Image
-              src="/logo1.png"
+              src="/LogoF.png"
               alt="BuzzBook Logo"
               width={102}
               height={56}
-              className="h-10 w-auto"
+              className="h-16 w-auto"
             />
           </Link>
 
@@ -30,23 +43,52 @@ export default function Header() {
             <Link href="/" className="text-white hover:text-purple-400 transition-colors duration-200 font-medium text-base">
               Home
             </Link>
-            <Link href="/movies" className="text-gray-400 hover:text-purple-400 transition-colors duration-200 font-medium text-base">
+            <Link href={`/movies/${city}`} className="text-gray-400 hover:text-purple-400 transition-colors duration-200 font-medium text-base">
               Movies
             </Link>
-            <Link href="/showtimes" className="text-gray-400 hover:text-purple-400 transition-colors duration-200 font-medium text-base">
-              Showtimes
+            <Link href="/events" className="text-gray-400 hover:text-purple-400 transition-colors duration-200 font-medium text-base">
+              Events
             </Link>
           </nav>
 
           {/* Right Side: Location + Login */}
           <div className="hidden lg:flex items-center space-x-4">
-            <Location />
-            <Link href="/login">
-              <Button className="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-6 py-2 text-base font-medium">
-                Login
-              </Button>
-            </Link>
-          </div>
+  <Location />
+
+  {!user ? (
+    <Link href="/login">
+      <Button className="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-6 py-2 text-base font-medium">
+        Login
+      </Button>
+    </Link>
+  ) : (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="w-10 h-10 rounded-full bg-purple-600 text-white flex items-center justify-center text-lg font-semibold">
+          {user.name?.charAt(0).toUpperCase()}
+        </button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent className="w-48 bg-black text-white border border-gray-700">
+        <DropdownMenuItem asChild>
+          <Link href="/profile" className="cursor-pointer">My Profile</Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem asChild>
+          <Link href="/bookings" className="cursor-pointer">My Bookings</Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={logout}
+          className="cursor-pointer text-red-400"
+        >
+          Logout
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )}
+</div>
+
 
           {/* Mobile Menu Button */}
           <Button
@@ -66,21 +108,50 @@ export default function Header() {
               <Link href="/" className="text-white hover:text-purple-400 transition-colors duration-200 py-2 text-sm font-medium">
                 Home
               </Link>
-              <Link href="/movies" className="text-gray-400 hover:text-purple-400 transition-colors duration-200 py-2 text-sm font-medium">
+              <Link href={`/movies/${city}`} className="text-gray-400 hover:text-purple-400 transition-colors duration-200 py-2 text-sm font-medium">
                 Movies
               </Link>
-              <Link href="/showtimes" className="text-gray-400 hover:text-purple-400 transition-colors duration-200 py-2 text-sm font-medium">
-                Showtimes
+              <Link href="/events" className="text-gray-400 hover:text-purple-400 transition-colors duration-200 py-2 text-sm font-medium">
+                Events
               </Link>
 
-              <div className="flex items-center space-x-4 pt-4 border-t border-gray-700/50">
-                <Location />
-                <Link href="/login">
-                  <Button className="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-6 py-2 text-sm font-medium">
-                    Login
-                  </Button>
-                </Link>
-              </div>
+              <div className="flex items-center justify-between pt-4 border-t border-gray-700/50">
+  <Location />
+
+  {!user ? (
+    <Link href="/login">
+      <Button className="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-6 py-2 text-sm font-medium">
+        Login
+      </Button>
+    </Link>
+  ) : (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="w-10 h-10 rounded-full bg-purple-600 text-white flex items-center justify-center text-lg font-semibold">
+          {user.name?.charAt(0).toUpperCase()}
+        </button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent className="w-48 bg-black text-white border border-gray-700">
+        <DropdownMenuItem asChild>
+          <Link href="/profile" className="cursor-pointer">My Profile</Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem asChild>
+          <Link href="/bookings" className="cursor-pointer">My Bookings</Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={logout}
+          className="cursor-pointer text-red-400"
+        >
+          Logout
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )}
+</div>
+
             </nav>
           </div>
         )}

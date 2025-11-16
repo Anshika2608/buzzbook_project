@@ -86,7 +86,7 @@ const [showPassword, setShowPassword] = useState(false);
         className="space-y-6 max-w-sm mx-auto py-6  rounded-lg"      >
         <div className="flex justify-end  lg:mr-17">
           <img
-            src="/buzz-1.png"
+            src="/LogoF.png"
             alt="Logo"
             className="h-20 min-h-[5rem] w-auto object-contain"
           />

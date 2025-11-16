@@ -56,13 +56,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     try {
-      await api.get(route.logout, {
+      await api.post(route.logout, {
         withCredentials: true,
       });
-
-      Cookies.remove("authToken");
-      Cookies.remove("userEmail");
-
       setUser(null);
       router.push("/");
     } catch (error) {
