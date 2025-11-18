@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { useLocation } from "@/app/context/LocationContext";
 import { useRouter } from "next/navigation";
+import { MapPin } from "lucide-react";
 
 const Location = () => {
   const { city, setCity, cities, isOpen, setIsOpen } = useLocation();
@@ -19,42 +20,71 @@ const Location = () => {
   const handleCitySelect = (selectedCity: string) => {
     setCity(selectedCity);
     setIsOpen(false);
-    localStorage.setItem("selectedCity", selectedCity); 
+    localStorage.setItem("selectedCity", selectedCity);
     router.push(`/movies/${selectedCity}`);
+  };
+
+  // ⭐ DYNAMIC ICON MAPPING (edit anytime)
+  const cityIcons: Record<string, string> = {
+    Delhi: "/locationIcons/delhi.png",
+    Mumbai: "/locationIcons/mumbai.png",
+    Agra: "/locationIcons/agra.png",
+    Jaipur: "/locationIcons/jaipur.png",
+    Lucknow: "/locationIcons/lucknow.png",
+    Pune: "/locationIcons/pune.png",
+    Indore: "/locationIcons/indore.png",
+    Bhopal: "/locationIcons/bhopal.png"
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger className="px-4 py-2 bg-blue-500 text-white rounded">
-        {city ? ` ${city}` : "Select Location"}
+      {/* Trigger Button */}
+      <DialogTrigger className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded text-sm transition-all">
+        <MapPin className="w-4 h-4 text-white" />
+        {city ? `${city}` : "Location"}
       </DialogTrigger>
 
-      <DialogContent>
+      <DialogContent className="bg-black/95 text-white border border-gray-800 backdrop-blur-xl shadow-2xl rounded-xl">
         <DialogHeader>
-          <DialogTitle>Select Your City</DialogTitle>
-          <DialogDescription>
-            Choose your city to get relevant movie and theatre options.
+          <DialogTitle className="text-purple-400 flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-purple-400" />
+            Select Your City
+          </DialogTitle>
+          <DialogDescription className="text-gray-300">
+            Choose your city to get relevant movie and theatre listings.
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-4 mt-4">
           {cities.length > 0 ? (
-            cities.map((c) => (
-              <button
-                key={c}
-                onClick={() => handleCitySelect(c)}
-                className="flex flex-col items-center p-2 rounded border hover:bg-gray-100 max-h-24"
-              >
-                <img
-                  src="/locationIcons/delhi4.png"
-                  className="h-20 w-24"
-                  alt={c}
-                />
-                <span className="mt-2">{c}</span>
-              </button>
-            ))
+            cities.map((c) => {
+              const icon = cityIcons[c] || "/locationIcons/default.png"; // fallback icon
+
+              return (
+                <button
+                  key={c}
+                  onClick={() => handleCitySelect(c)}
+                  className="
+                    flex flex-col items-center p-2 rounded border 
+                    border-gray-700 
+                    hover:border-purple-500 
+                    hover:bg-purple-500/10 
+                    transition-all 
+                    max-h-24
+                    shadow-sm hover:shadow-purple-500/20
+                  "
+                >
+                  <img
+                    src={icon}
+                    className="h-14 w-12 rounded-md"
+                    alt={c}
+                  />
+                  <span className="mt-1 text-sm font-medium">{c}</span>
+                </button>
+              );
+            })
           ) : (
-            <p className="col-span-2 text-center text-gray-500">
+            <p className="col-span-2 text-center text-gray-400">
               Loading cities...
             </p>
           )}
@@ -65,6 +95,7 @@ const Location = () => {
 };
 
 export default Location;
+
 
 
 

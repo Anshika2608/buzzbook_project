@@ -12,9 +12,9 @@ import AvatarImage from "@/components/fallback"
 
 export default function MovieDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const { addToWishlist ,wishlistMovies} = useLocation();
   const { fetchMovieDetails,city } = useLocation()
   const [movie, setMovie] = useState<Movie | null>(null)
-  const [isLiked, setIsLiked] = useState(false)
 
 useEffect(() => {
   if (id && (!movie || movie._id !== id)) {
@@ -77,6 +77,10 @@ useEffect(() => {
       1: Math.round((distribution[1] / total) * 100),
     }
   }
+
+const isInWishlist = wishlistMovies.some(
+  (m) => m._id === movie._id
+);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/10 to-slate-950 font-sans text-white">
@@ -173,14 +177,16 @@ useEffect(() => {
                       <Users className="mr-1 h-4 w-4 sm:mr-2" />
                       With Friends
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setIsLiked(!isLiked)}
-                      className={`h-10 w-10 rounded-full border border-white/20 backdrop-blur-md transition-all duration-300 ${isLiked ? "bg-red-500/20 text-red-400" : "bg-white/10 text-white hover:bg-white/20"}`}
-                    >
-                      <Heart className={`h-4 w-4 ${isLiked ? "fill-current" : ""}`} />
-                    </Button>
+                   <button
+  onClick={() => addToWishlist(movie._id,movie.theaterId ?? null)}
+  className="p-1 rounded-full border border-white/10 hover:bg-white/10 transition"
+>
+  <Heart
+    className={`h-4 w-4 sm:h-5 sm:w-5 ${
+      isInWishlist ? "text-red-500 fill-red-500" : "text-white"
+    }`}
+  />
+</button>
                   </div>
                 </div>
               </div>
@@ -266,6 +272,16 @@ useEffect(() => {
                     <Users className="mr-2 h-5 w-5" />
                     Friends
                   </Button>
+                   <button
+  onClick={() => addToWishlist(movie._id,movie.theaterId ?? null)}
+  className="p-1 rounded-full border border-white/10 hover:bg-white/10 transition"
+>
+  <Heart
+    className={`h-4 w-4 sm:h-5 sm:w-5 ${
+      isInWishlist ? "text-red-500 fill-red-500" : "text-white"
+    }`}
+  />
+</button>
                 </div>
               </div>
             </div>
