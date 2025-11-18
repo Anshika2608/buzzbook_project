@@ -61,7 +61,9 @@ const [showPassword, setShowPassword] = useState(false);
       const res = await login(data);
 
       if (res.success) {
-        toast.success("✅ Logged in successfully!");
+
+        toast.success("Logged in successfully!");
+        localStorage.setItem("userId", res.user.id);
         form.reset();
         await refreshUser();
         router.push("/home");

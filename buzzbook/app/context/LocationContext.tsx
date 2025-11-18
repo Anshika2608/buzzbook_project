@@ -44,7 +44,6 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
     try {
       const res = await api.get(`${route.movie}?location=${selectedCity}`);
       setMovies(res.data.movies || []);
-      console.log(res.data)
     } catch (err) {
       console.error("Error fetching movies", err);
       setMovies([]);
@@ -177,8 +176,6 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
         releaseDate: movie.release_date,
         description: movie.description || "Get ready for an unforgettable cinematic experience. Coming soon to a theatre near you.",
       }));
-
-      console.log("Transformed movies:", transformed); // 👈 check if array has elements
 
       setComingSoonMovies(transformed);
     } catch (err) {

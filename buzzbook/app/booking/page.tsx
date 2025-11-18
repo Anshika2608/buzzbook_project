@@ -18,7 +18,7 @@ interface SelectedSeat {
 export default function SeatBookingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { seatLayout, isLoading, fetchSeatLayout, seatPrices } = useBooking();
+  const { seatLayout, isLoading, fetchSeatLayout, seatPrices, holdSeats, releaseHold, updateSeats } = useBooking();
   const { city } = useLocation();
 
   const theaterId = searchParams.get("theater_id");
@@ -35,23 +35,53 @@ export default function SeatBookingPage() {
       fetchSeatLayout(theaterId, movieTitle, showtime, showDate);
     }
   }, [theaterId, movieTitle, showtime, showDate]);
+  // -------------------------------
+  // AUTO-SYNC selectedSeats with backend `selected_by_me`
+  // -------------------------------
+  useEffect(() => {
+    const mySeats = seatLayout.filter((s: any) => s.selected_by_me);
 
+    if (mySeats.length > 0) {
+      setSelectedSeats(
+        mySeats.map((s: any) => ({
+          seat_number: s.seat_number,
+          type: s.type,
+          price: getSeatPrice(s.type),
+        }))
+      );
+    }
+  }, [seatLayout]);
   // Toggle seat selection
   const handleSeatClick = (seat: any) => {
-    if (seat.is_booked || seat.is_held) return;
+    console.log("🖱️ Seat clicked:", seat);
 
-    const seatId = seat.seat_number;
-    const isSelected = selectedSeats.some((s) => s.seat_number === seatId);
+    if (seat.is_booked) {
+      console.log("❌ Cannot select. Booked seat.");
+      return;
+    }
+    if (seat.is_held && !seat.selected_by_me) {
+      console.log("⛔ Cannot select. Held by other user.");
+      return;
+    }
+
+    const isSelected =
+      selectedSeats.some(s => s.seat_number === seat.seat_number) ||
+      seat.selected_by_me === true;
+
+    console.log("👉 isSelected:", isSelected);
 
     if (isSelected) {
-      setSelectedSeats((prev) => prev.filter((s) => s.seat_number !== seatId));
+      console.log("🟪 Removing seat:", seat.seat_number);
+      setSelectedSeats((prev) => prev.filter((s) => s.seat_number !== seat.seat_number));
     } else {
+      console.log("🟣 Adding seat:", seat.seat_number);
       setSelectedSeats((prev) => [
         ...prev,
-        { seat_number: seatId, type: seat.type, price: getSeatPrice(seat.type) },
+        { seat_number: seat.seat_number, type: seat.type, price: getSeatPrice(seat.type) },
       ]);
     }
   };
+
 
   // Price calculation
   const getSeatPrice = (type: string): number => {
@@ -81,12 +111,30 @@ export default function SeatBookingPage() {
   const handleProceed = async () => {
     const payloadSeats = selectedSeats.map((s) => s.seat_number);
 
-router.push(
-  `/snacks?theater_id=${theaterId}&movie_title=${movieTitle}&showtime=${showtime}&show_date=${showDate}&seats=${payloadSeats.join(
-    ","
-  )}&ticketPrice=${totalPrice}`
-);
+    // 1. If previous temp booking exists -> update seats instead of releasing
+    const oldTempId = localStorage.getItem("tempBookingId");
+    if (oldTempId) {
+      // update existing temp booking's seats (keeps snacks intact)
+      await updateSeats(oldTempId, payloadSeats, showDate!);
+    } else {
+      // create new temp booking
+      const res = await holdSeats({
+        theater_id: theaterId!,
+        movie_title: movieTitle!,
+        showtime: showtime!,
+        show_date: showDate!,
+        seats: payloadSeats,
+      });
 
+      if (res?.tempBookingId) localStorage.setItem("tempBookingId", res.tempBookingId);
+    }
+
+    // DO NOT clear snack cart here — snacks should persist across seat changes
+
+    // Navigate to snacks
+    router.push(
+      `/snacks?theater_id=${theaterId}&movie_title=${movieTitle}&showtime=${showtime}&show_date=${showDate}&seats=${payloadSeats.join(",")}&ticketPrice=${totalPrice}`
+    );
   };
 
   const totalPrice = selectedSeats.reduce((sum, seat) => sum + (seat.price || 0), 0);
@@ -192,33 +240,43 @@ router.push(
                           <div className="flex justify-center items-center gap-2">
                             <span className="w-6 text-center font-bold text-purple-300">{row}</span>
 
-                            <div className="flex gap-2 flex-wrap">
+                            <div
+                              className="grid gap-1"
+                              style={{
+                                gridTemplateColumns: `repeat(${seats.length}, minmax(0, 1fr))`,
+                              }}
+                            >
                               {seats.map((seat) => {
-                                const isSelected = selectedSeats.some(
-                                  (s) => s.seat_number === seat.seat_number
-                                );
+                                const isSelected =
+                                  seat.selected_by_me ||
+                                  selectedSeats.some((s) => s.seat_number === seat.seat_number);
 
-                                const seatClass = seat.is_booked
-                                  ? "bg-red-600/70 text-white opacity-70 cursor-not-allowed"
-                                  : seat.is_held
-                                  ? "bg-yellow-400 text-black opacity-90 cursor-not-allowed"
-                                  : isSelected
-                                  ? "bg-purple-600 text-white ring-2 ring-purple-400 scale-110"
-                                  : "bg-gray-800 text-white hover:bg-gray-700";
+                                let seatClass = "bg-gray-800 text-white hover:bg-gray-700";
+
+                                if (isSelected) {
+                                  seatClass =
+                                    "bg-purple-600 text-white ring-2 ring-purple-400";
+                                } else if (seat.is_booked) {
+                                  seatClass =
+                                    "bg-red-600/70 text-white opacity-70 cursor-not-allowed";
+                                } else if (seat.is_held) {
+                                  seatClass =
+                                    "bg-yellow-400 text-black opacity-90 cursor-not-allowed";
+                                }
 
                                 return (
                                   <button
                                     key={seat.seat_number}
                                     onClick={() => handleSeatClick(seat)}
                                     disabled={seat.is_booked || seat.is_held}
-                                    className={`h-9 w-9 flex items-center justify-center rounded-md font-medium text-xs transition-all duration-200 ${seatClass}`}
-                                    title={`${seat.seat_number} - ${seat.type}`}
+                                    className={`h-5 w-5 rounded-sm sm:h-8 sm:w-8 md:h-9 md:w-9 flex items-center justify-center sm:rounded-md text-xs font-medium transition-all duration-200 ${seatClass}`}
                                   >
                                     {seat.seat_number.slice(1)}
                                   </button>
                                 );
                               })}
                             </div>
+
 
                           </div>
                         </div>

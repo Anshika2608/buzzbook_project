@@ -41,7 +41,6 @@ export const SnackProvider = ({ children }: { children: React.ReactNode }) => {
     );
 
     setSnacks(res.data?.snacks || []);
-    console.log("✅ Snacks fetched successfully:", res.data.snacks);
   } catch (err) {
     console.error("❌ Error fetching snacks:", err);
   } finally {
