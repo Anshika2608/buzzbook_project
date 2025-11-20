@@ -103,7 +103,7 @@ export default function SignupForm() {
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a66b5] w-5 h-5" />
                     <Input
-                      type="email"
+                      type="text"
                       className="auth-input pl-10"
                       {...field}
                     />

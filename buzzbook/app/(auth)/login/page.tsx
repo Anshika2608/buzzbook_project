@@ -5,7 +5,7 @@ export default function LoginPage() {
   return (
     <div className="
       min-h-screen 
-      flex flex-col items-end justify-center 
+      flex flex-col items-center md:items-end justify-center 
       bg-cover bg-center 
       md:bg-[url('/login1.png')] 
       bg-[url('/login2.png')] 

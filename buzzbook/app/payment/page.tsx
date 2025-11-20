@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import api from "@/lib/interceptor";
 import { route } from "@/lib/api";
@@ -19,6 +19,7 @@ export default function PaymentPage() {
     const snacks = JSON.parse(searchParams.get("snacks") || "[]");
 
     const [loading, setLoading] = useState(false);
+    const [updatedTotal, setUpdatedTotal] = useState(ticketPrice);
 
     const snackTotal = snacks.reduce(
         (sum: number, item: any) => sum + item.qty * item.price,
@@ -27,6 +28,43 @@ export default function PaymentPage() {
 
     const grandTotal = ticketPrice + snackTotal;
 
+    // ------------------------
+    // 1) UPDATE temp booking
+    // ------------------------
+    useEffect(() => {
+        const tempBookingId = localStorage.getItem("tempBookingId");
+
+        if (!tempBookingId) {
+            console.error("❌ No tempBookingId found!");
+            return;
+        }
+
+        const syncTempBooking = async () => {
+            try {
+                // First ensure seats are up-to-date
+                await api.put(route.updateSeats, { tempBookingId, seats, show_date });
+
+                // Then update snacks
+                await api.put(route.updateTempBooking, {
+                    tempBookingId,
+                    snacks: snacks.map((item: any) => ({ snackId: item.id, unit: item.unit, quantity: item.qty })),
+                });
+
+                // Fetch latest temp booking to read total_price (assuming you have an endpoint)
+                // If no endpoint, the update endpoints can return total_price which you should use.
+                // const resp = await api.get(`${route.getTempBooking}?id=${tempBookingId}`);
+                // setUpdatedTotal(resp.data.total_price || ticketPrice + snackTotal);
+            } catch (err) {
+                console.error("❌ Error syncing temp booking:", err);
+            }
+        };
+
+        syncTempBooking();
+    }, [snacks, seats]);
+
+    // ------------------------
+    // Razorpay Loader
+    // ------------------------
     const loadRazorpayScript = () => {
         return new Promise((resolve) => {
             const script = document.createElement("script");
@@ -37,12 +75,15 @@ export default function PaymentPage() {
         });
     };
 
+    // ------------------------
+    // Handle Payment
+    // ------------------------
     const handlePayment = async () => {
         try {
             setLoading(true);
 
             const orderRes = await api.post(`${route.createPayment}`, {
-                amount: grandTotal,
+                amount: updatedTotal,
                 currency: "INR",
             });
 
@@ -74,14 +115,6 @@ export default function PaymentPage() {
                         razorpay_order_id: res.razorpay_order_id,
                         razorpay_payment_id: res.razorpay_payment_id,
                         razorpay_signature: res.razorpay_signature,
-                        bookingDetails: {
-                            theater_id,
-                            movie_title,
-                            showtime,
-                            show_date,
-                            seats,
-                            snacks,
-                        },
                     });
 
                     if (verifyRes.data.success) {
@@ -106,12 +139,9 @@ export default function PaymentPage() {
         <div className="min-h-screen bg-gradient-to-b from-black via-purple-950/40 to-black text-white p-6 ">
             <div className="max-w-6xl mx-auto mt-24">
 
-                {/* HEADER */}
-                <h1 className="text-4xl font-bold text-center mb-8">
-                    Order Summary
-                </h1>
+                <h1 className="text-4xl font-bold text-center mb-8">Order Summary</h1>
 
-                {/* MOVIE SECTION */}
+                {/* MOVIE DETAILS */}
                 <div className="text-lg mb-6">
                     <p className="font-bold text-purple-400 text-xl mb-2">🎬 Movie Details</p>
 
@@ -154,20 +184,20 @@ export default function PaymentPage() {
 
                 <hr className="border-purple-800 my-6" />
 
-                {/* GRAND TOTAL */}
+                {/* UPDATED TOTAL */}
                 <div className="flex justify-between items-center text-3xl font-semibold text-white mb-10">
                     <span>Total Amount</span>
-                    <span className="text-green-400">₹{grandTotal}</span>
+                    <span className="text-green-400">₹{updatedTotal}</span>
                 </div>
 
-                {/* PAY NOW BUTTON */}
+                {/* PAY BUTTON */}
                 <div className="w-full flex justify-center">
                     <Button
                         className="w-full max-w-md text-2xl bg-purple-600 hover:bg-purple-700 rounded-xl shadow-lg shadow-purple-700/50"
                         onClick={handlePayment}
                         disabled={loading}
                     >
-                        {loading ? "Processing..." : `Pay ₹${grandTotal}`}
+                        {loading ? "Processing..." : `Pay ₹${updatedTotal}`}
                     </Button>
                 </div>
 

@@ -17,7 +17,6 @@ export default function MovieDetailPage() {
   const [movie, setMovie] = useState<Movie | null>(null)
 
 useEffect(() => {
-  console.log(id)
   if (id && (!movie || movie._id !== id)) {
     fetchMovieDetails(id).then((data) => {
       if (data) setMovie(data);

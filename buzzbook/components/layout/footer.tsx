@@ -1,5 +1,6 @@
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 export default function Footer() {
   return (
@@ -8,12 +9,15 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Company Info */}
           <div className="space-y-6">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="bg-gradient-to-r from-purple-600 to-purple-500 px-3 py-1.5 rounded-md">
-                <span className="text-white font-bold text-sm">BUZZ</span>
-              </div>
-              <span className="text-white font-light tracking-wide">BOOK</span>
-            </Link>
+            <Link href="/" className="flex ">
+            <Image
+              src="/LogoF.png"
+              alt="BuzzBook Logo"
+              width={102}
+              height={56}
+              className="h-16 w-auto"
+            />
+          </Link>
             <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
 
               Your premier destination for seamless movie bookings. Experience cinema like never before with BuzzBook&rsquo;s intuitive platform.
