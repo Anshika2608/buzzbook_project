@@ -37,7 +37,7 @@ export default function RootLayout({
             <BookingProvider>
               <SnackProvider>
             <Header />
-            <main className="flex-grow">{children}</main>
+            <main className="flex-grow mt-12">{children}</main>
             <Footer />
             <Toaster richColors position="top-right" />
               </SnackProvider>

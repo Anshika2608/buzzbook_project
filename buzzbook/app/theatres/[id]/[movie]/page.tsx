@@ -50,6 +50,9 @@ export default function TheatrePage() {
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const movieName = movieDet?.title ?? "";
   console.log(theatres)
+  const isTheaterInWishlist = wishlistTheater.some(
+    (t) => t._id === theatres._id
+  );
 
   const generateDates = () => {
     return Array.from({ length: 7 }).map((_, i) => {
@@ -270,15 +273,9 @@ export default function TheatrePage() {
             </Card>
           ) : (
             theatres?.map((theatre) => {
-             const isTheaterInWishlist =
-    Array.isArray(wishlistTheater) &&
-    wishlistTheater.some((t) => {
-      console.log("Wishlist Theater ID:", t._id);
-      console.log("Current Theatre ID:", theatre._id);
-      console.log("Match:", t._id === theatre._id);
-      console.log("----------------");
-      return t._id === theatre._id;
-    });
+              const isTheaterInWishlist =
+                Array.isArray(wishlistTheater) &&
+                wishlistTheater.some((t) => t._id === theatre._id);
 
               return (
                 <Card
@@ -288,17 +285,21 @@ export default function TheatrePage() {
                   <div className="flex flex-col gap-6 lg:flex-row lg:justify-between">
                     {/* Left Column: Theatre Info & Amenities */}
                     <div className="flex-1">
-                      <h3 className="mb-2 text-xl font-bold text-white">
-                        {theatre.name}
-                      </h3><button
-                        onClick={() => addToWishlist(null, theatre._id)}
-                        className="p-1.5 rounded-full border border-white/10 hover:bg-white/10 transition"
-                      >
-                        <Heart
-                          className={`h-5 w-5 sm:h-6 sm:w-6 ${isTheaterInWishlist ? "text-red-500 fill-red-500" : "text-white"
-                            }`}
-                        />
-                      </button>
+                     <div className="flex items-center gap-3">
+  <h3 className="mb-2 text-xl font-bold text-white">{theatre.name}</h3>
+
+  <button
+    onClick={() => addToWishlist(null, theatre._id)}
+    className="p-1 rounded-full border border-white/10 hover:bg-white/10 transition h-7 w-7 flex items-center justify-center mb-1"
+  >
+    <Heart
+      className={`h-4 w-4 ${
+        isTheaterInWishlist ? "text-red-500 fill-red-500" : "text-white"
+      }`}
+    />
+  </button>
+</div>
+                     
                       {theatre.address && (
                         <p
                           onClick={() => {
