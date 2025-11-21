@@ -31,36 +31,45 @@ export default function PaymentPage() {
     // ------------------------
     // 1) UPDATE temp booking
     // ------------------------
-    useEffect(() => {
-        const tempBookingId = localStorage.getItem("tempBookingId");
+useEffect(() => {
+    const tempBookingId = localStorage.getItem("tempBookingId");
 
-        if (!tempBookingId) {
-            console.error("❌ No tempBookingId found!");
-            return;
-        }
+    if (!tempBookingId) {
+        console.error("❌ No tempBookingId found!");
+        return;
+    }
 
-        const syncTempBooking = async () => {
-            try {
-                // First ensure seats are up-to-date
-                await api.put(route.updateSeats, { tempBookingId, seats, show_date });
+    const syncTempBooking = async () => {
+        try {
+            // 1️⃣ Ensure seats are synced
+            await api.put(route.updateSeats, { tempBookingId, seats, show_date });
 
-                // Then update snacks
-                await api.put(route.updateTempBooking, {
-                    tempBookingId,
-                    snacks: snacks.map((item: any) => ({ snackId: item.id, unit: item.unit, quantity: item.qty })),
-                });
+            // 2️⃣ Update snacks → this returns total_price
+            const res = await api.put(route.updateTempBooking, {
+                tempBookingId,
+                snacks: snacks.map((item: any) => ({
+                    snackId: item.id,
+                    unit: item.unit,
+                    quantity: item.qty
+                })),
+            });
 
-                // Fetch latest temp booking to read total_price (assuming you have an endpoint)
-                // If no endpoint, the update endpoints can return total_price which you should use.
-                // const resp = await api.get(`${route.getTempBooking}?id=${tempBookingId}`);
-                // setUpdatedTotal(resp.data.total_price || ticketPrice + snackTotal);
-            } catch (err) {
-                console.error("❌ Error syncing temp booking:", err);
+            // 3️⃣ Update UI with backend total
+            if (res?.data?.total_price) {
+                setUpdatedTotal(res.data.total_price);
+            } else {
+                // fallback: calculate manually
+                setUpdatedTotal(ticketPrice + snackTotal);
             }
-        };
 
-        syncTempBooking();
-    }, [snacks, seats]);
+        } catch (err) {
+            console.error("❌ Error syncing temp booking:", err);
+        }
+    };
+
+    syncTempBooking();
+}, [snacks, seats]);
+
 
     // ------------------------
     // Razorpay Loader

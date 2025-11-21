@@ -30,6 +30,7 @@ interface BookingContextType {
   updateSeats: (tempBookingId: string, seats: string[], show_date: string) => Promise<any>;
   updateTempBooking: (tempId: string, snacks: any[]) => Promise<void>;
   releaseHold: (tempId: string) => Promise<void>;
+  socket: Socket | null;
 }
 
 const BookingContext = createContext<BookingContextType | undefined>(undefined);
@@ -43,7 +44,14 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
   const getCurrentUserId = () => {
     return localStorage.getItem("userId") || null;
   };
-  
+  const getCurrentShow = () => {
+    try {
+      return JSON.parse(localStorage.getItem("currentShowDetails") || "{}");
+    } catch {
+      return {};
+    }
+  };
+
   // SOCKET CONNECTION
   useEffect(() => {
     const socket = io("https://buzzbook-server-dy0q.onrender.com", {
@@ -60,6 +68,8 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
         prev.map((s) => {
           if (!data.seats.includes(s.seat_number)) return s;
 
+          console.log("userId", data);
+          console.log("CurrentuserId", currentUserId);
           if (data.userId === currentUserId) {
             console.log("🟣 Marking as selected_by_me:", s.seat_number);
             return { ...s, is_held: false, selected_by_me: true };
@@ -72,18 +82,38 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
     });
 
     socket.on("seatReleased", (data) => {
+      const currentUserId = getCurrentUserId();
+      const show = getCurrentShow();
+
       console.log("♻️ seatReleased event:", data);
 
+      const eventDate = new Date(data.show_date).toISOString().split("T")[0];
+     
+      if (
+        data.theater_id !== show.theater_id ||
+        data.movie_title !== show.movie_title ||
+        eventDate !== show.show_date ||
+        data.showtime !== show.showtime
+      ) {
+        return;
+      }
+
+      // If backend released MY booking → clear tempBookingId
+      if (data.userId === currentUserId) {
+        localStorage.removeItem("tempBookingId");
+        console.log("🧹 Temp booking cleared (released by backend)");
+      }
+
+      // Update UI
       setSeatLayout((prev) =>
-        prev.map((s) => {
-          if (data.seats.includes(s.seat_number)) {
-            console.log("🔓 Releasing seat:", s.seat_number);
-            return { ...s, is_held: false, selected_by_me: false };
-          }
-          return s;
-        })
+        prev.map((s) =>
+          data.seats.includes(s.seat_number)
+            ? { ...s, is_held: false, selected_by_me: false }
+            : s
+        )
       );
     });
+
 
     return () => {
       socket.disconnect();
@@ -91,33 +121,42 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
   }, []);
 
   // FETCH SEATS
-const fetchSeatLayout = async (t: string, m: string, s: string, d: string) => {
-  setIsLoading(true);
-  try {
-    const res = await api.get(route.seat, {
-      params: {
+  const fetchSeatLayout = async (t: string, m: string, s: string, d: string) => {
+    setIsLoading(true);
+    localStorage.setItem(
+      "currentShowDetails",
+      JSON.stringify({
         theater_id: t,
         movie_title: m,
         showtime: s,
-        show_date: d
-      }
-    });
+        show_date: d,
+      })
+    );
+    try {
+      const res = await api.get(route.seat, {
+        params: {
+          theater_id: t,
+          movie_title: m,
+          showtime: s,
+          show_date: d
+        }
+      });
 
-    const newLayout: Seat[] = res.data.seating_layout.flat();
+      const newLayout: Seat[] = res.data.seating_layout.flat();
 
-    // ❗ DO NOT copy previous selected_by_me
-    // ❗ Reset selected_by_me for new movie/showtime
-    const cleanedLayout = newLayout.map((seat: Seat) => ({
-      ...seat,
-      selected_by_me: false,
-    }));
+      // // ❗ DO NOT copy previous selected_by_me
+      // // ❗ Reset selected_by_me for new movie/showtime
+      // const cleanedLayout = newLayout.map((seat: Seat) => ({
+      //   ...seat,
+      //   selected_by_me: false,
+      // }));
 
-    setSeatLayout(cleanedLayout);
-    setSeatPrices(res.data.prices);
-  } finally {
-    setIsLoading(false);
-  }
-};
+      setSeatLayout(newLayout);
+      setSeatPrices(res.data.prices);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
 
 
@@ -185,6 +224,7 @@ const fetchSeatLayout = async (t: string, m: string, s: string, d: string) => {
         updateSeats,
         updateTempBooking,
         releaseHold,
+        socket: socketRef.current,
       }}
     >
       {children}

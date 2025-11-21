@@ -59,6 +59,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await api.post(route.logout, {
         withCredentials: true,
       });
+      localStorage.removeItem("userId");
+      localStorage.removeItem("tempBookingId");
       setUser(null);
       router.push("/");
     } catch (error) {

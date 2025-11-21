@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState ,useRef} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useBooking } from "@/app/context/BookingContext";
 import { useLocation } from "@/app/context/LocationContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Calendar, Clock, User, CreditCard } from "lucide-react";
-
+import {MapPin, Calendar, Clock, User, CreditCard } from "lucide-react";
+import SeatRemoveDialog from "@/components/removeSeatConfirm";
 interface SelectedSeat {
   seat_number: string;
   type: string;
@@ -18,8 +18,12 @@ interface SelectedSeat {
 export default function SeatBookingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { seatLayout, isLoading, fetchSeatLayout, seatPrices, holdSeats, releaseHold, updateSeats } = useBooking();
+  const { seatLayout, isLoading, fetchSeatLayout, seatPrices, holdSeats, releaseHold, updateSeats, socket } = useBooking();
   const { city } = useLocation();
+const [showConfirmRemove, setShowConfirmRemove] = useState(false);
+const [resolveAction, setResolveAction] = useState<null | (() => Promise<void>)>(null);
+
+
 
   const theaterId = searchParams.get("theater_id");
   const theatreName = searchParams.get("theatreName");
@@ -39,6 +43,7 @@ export default function SeatBookingPage() {
   // AUTO-SYNC selectedSeats with backend `selected_by_me`
   // -------------------------------
   useEffect(() => {
+
     const mySeats = seatLayout.filter((s: any) => s.selected_by_me);
 
     if (mySeats.length > 0) {
@@ -51,35 +56,44 @@ export default function SeatBookingPage() {
       );
     }
   }, [seatLayout]);
-  // Toggle seat selection
-  const handleSeatClick = (seat: any) => {
-    console.log("🖱️ Seat clicked:", seat);
 
-    if (seat.is_booked) {
-      console.log("❌ Cannot select. Booked seat.");
+  const handleSeatClick = async (seat: any) => {
+    const isSelected = selectedSeats.some(
+      (s) => s.seat_number === seat.seat_number
+    );
+
+    const tempBookingId = localStorage.getItem("tempBookingId");
+    if (isSelected && seat.selected_by_me && tempBookingId) {
+
+      const confirmed = window.confirm(
+        "You are removing a seat from your previous selection.\n\nDo you want to reset your booking and select new seats?"
+      );
+
+      if (!confirmed) return;
+      await releaseHold(tempBookingId);
+
+      localStorage.removeItem("tempBookingId");
+      setSelectedSeats([]);
       return;
     }
-    if (seat.is_held && !seat.selected_by_me) {
-      console.log("⛔ Cannot select. Held by other user.");
-      return;
-    }
-
-    const isSelected =
-      selectedSeats.some(s => s.seat_number === seat.seat_number) ||
-      seat.selected_by_me === true;
-
-    console.log("👉 isSelected:", isSelected);
-
+    // Normal deselect (not held-by-me from backend)
     if (isSelected) {
-      console.log("🟪 Removing seat:", seat.seat_number);
-      setSelectedSeats((prev) => prev.filter((s) => s.seat_number !== seat.seat_number));
-    } else {
-      console.log("🟣 Adding seat:", seat.seat_number);
-      setSelectedSeats((prev) => [
-        ...prev,
-        { seat_number: seat.seat_number, type: seat.type, price: getSeatPrice(seat.type) },
-      ]);
+      setSelectedSeats((prev) =>
+        prev.filter((s) => s.seat_number !== seat.seat_number)
+      );
+      return;
     }
+ 
+
+    // LOCAL UI update
+    setSelectedSeats((prev) => [
+      ...prev,
+      {
+        seat_number: seat.seat_number,
+        type: seat.type,
+        price: getSeatPrice(seat.type),
+      },
+    ]);
   };
 
 
@@ -163,16 +177,6 @@ export default function SeatBookingPage() {
         <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
 
           <div className="mb-4 flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.back()}
-              className="rounded-full bg-purple-900/20 text-purple-300 hover:bg-purple-800/50 hover:text-white transition-colors"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
-
             <div className="flex items-center gap-2 text-purple-300">
               <MapPin className="h-4 w-4" />
               <p className="text-sm font-semibold">{city}</p>
@@ -220,7 +224,6 @@ export default function SeatBookingPage() {
                 {(() => {
                   const grouped = groupSeatsByRow();
                   let lastType = "";
-
                   return Object.entries(grouped)
                     .sort(([a], [b]) => a.localeCompare(b))
                     .map(([row, seats]) => {
@@ -236,7 +239,6 @@ export default function SeatBookingPage() {
                               {currentType} — ₹{getSeatPrice(seats[0].type)}
                             </h3>
                           )}
-
                           <div className="flex justify-center items-center gap-2">
                             <span className="w-6 text-center font-bold text-purple-300">{row}</span>
 
@@ -247,28 +249,25 @@ export default function SeatBookingPage() {
                               }}
                             >
                               {seats.map((seat) => {
-                                const isSelected =
-                                  seat.selected_by_me ||
-                                  selectedSeats.some((s) => s.seat_number === seat.seat_number);
-
+                                const isLocallySelected = selectedSeats.some(
+                                  (s) => s.seat_number === seat.seat_number
+                                );
                                 let seatClass = "bg-gray-800 text-white hover:bg-gray-700";
 
-                                if (isSelected) {
-                                  seatClass =
-                                    "bg-purple-600 text-white ring-2 ring-purple-400";
-                                } else if (seat.is_booked) {
-                                  seatClass =
-                                    "bg-red-600/70 text-white opacity-70 cursor-not-allowed";
-                                } else if (seat.is_held) {
-                                  seatClass =
-                                    "bg-yellow-400 text-black opacity-90 cursor-not-allowed";
+                                if (seat.selected_by_me || isLocallySelected) {
+                                  seatClass = "bg-purple-600 text-white ring-2 ring-purple-400";
                                 }
-
+                                else if (seat.is_booked) {
+                                  seatClass = "bg-red-600/70 text-white opacity-70 cursor-not-allowed";
+                                }
+                                else if (seat.is_held && !seat.selected_by_me) {
+                                  seatClass = "bg-yellow-400 text-black opacity-90 cursor-not-allowed";
+                                }
                                 return (
                                   <button
                                     key={seat.seat_number}
                                     onClick={() => handleSeatClick(seat)}
-                                    disabled={seat.is_booked || seat.is_held}
+                                    disabled={seat.is_booked || (seat.is_held && !seat.selected_by_me)}
                                     className={`h-5 w-5 rounded-sm sm:h-8 sm:w-8 md:h-9 md:w-9 flex items-center justify-center sm:rounded-md text-xs font-medium transition-all duration-200 ${seatClass}`}
                                   >
                                     {seat.seat_number.slice(1)}
