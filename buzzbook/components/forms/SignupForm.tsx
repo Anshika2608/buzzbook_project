@@ -45,6 +45,11 @@ export default function SignupForm() {
 
   const handleRecaptchaAndSubmit = async () => {
     const recaptchaValue = await recaptchaRef.current?.executeAsync();
+    console.log("Recaptcha key:", siteKey);
+   console.log("Recaptcha ref:", recaptchaRef.current);
+   const v = await recaptchaRef.current?.executeAsync();
+   console.log("Recaptcha token:", v);
+
 
     if (!recaptchaValue) {
       toast.error("reCAPTCHA failed, please try again");
@@ -83,22 +88,21 @@ export default function SignupForm() {
             e.preventDefault();
             handleRecaptchaAndSubmit();
           }}
-          className="space-y-6 max-w-sm mx-auto py-6  rounded-lg"
-        >
-          <div className="flex justify-end  lg:mr-17">
-            <img
-              src="/buzz-1.png"
-              alt="Logo"
-              className="h-20 min-h-[5rem] w-auto object-contain"
-            />
-          </div>
+        className="flex flex-col items-center justify-center space-y-3 mx-auto py-6  rounded-lg w-2xs">
+          <div className="">
+          <img
+            src="/LogoF.png"
+            alt="Logo"
+            className="h-20 min-h-[5rem] w-auto object-contain "
+          />
+        </div>
           <h2 className="text-white text-xl font-bold text-center">Sign up</h2>
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-white text-lg">Username</FormLabel>
+              <FormItem className="w-full">
+                <FormLabel className="text-gray-200 text-md">Username</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a66b5] w-5 h-5" />
@@ -117,8 +121,8 @@ export default function SignupForm() {
             control={form.control}
             name="email"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-white text-lg">Email</FormLabel>
+              <FormItem className="w-full">
+                <FormLabel className="text-white text-md">Email</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a66b5] w-5 h-5" />
@@ -137,8 +141,8 @@ export default function SignupForm() {
             control={form.control}
             name="password"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-white text-lg">Password</FormLabel>
+              <FormItem className="w-full">
+                <FormLabel className="text-white text-md">Password</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a66b5] w-5 h-5" />
@@ -166,8 +170,8 @@ export default function SignupForm() {
             control={form.control}
             name="cpassword"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-white text-lg">Confirm Password</FormLabel>
+              <FormItem className="w-full">
+                <FormLabel className="text-white text-md">Confirm Password</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a66b5] w-5 h-5" />

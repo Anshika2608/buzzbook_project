@@ -9,7 +9,8 @@ export default function LoginPage() {
       bg-cover bg-center 
       md:bg-[url('/login1.png')] 
       bg-[url('/login2.png')] 
-      lg:pr-64
+      md:pr-20
+      xl:pr-40
     ">
       <div className="bg-opacity-80 p-8 rounded-lg shadow-lg">
         <LoginForm />

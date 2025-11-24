@@ -11,9 +11,7 @@ const HomePageContent = () => {
     return (
         <div className="bg-gray-900 min-h-screen font-sans">
             <HeroCarousel movies={comingSoonMovies} isLoading={isLoadingComingSoon} />
-            <NowShowing />
-
-            
+            <NowShowing />            
         </div>
     );
 }
