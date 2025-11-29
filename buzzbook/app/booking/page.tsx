@@ -7,7 +7,8 @@ import { useLocation } from "@/app/context/LocationContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Calendar, Clock, User, CreditCard } from "lucide-react";
+import { MapPin, Calendar, Clock, User, CreditCard } from "lucide-react";
+
 
 interface SelectedSeat {
   seat_number: string;
@@ -20,30 +21,45 @@ export default function SeatBookingPage() {
   const searchParams = useSearchParams();
   const { seatLayout, isLoading, fetchSeatLayout, seatPrices, holdSeats, releaseHold, updateSeats } = useBooking();
   const { city } = useLocation();
-
   const theaterId = searchParams.get("theater_id");
   const theatreName = searchParams.get("theatreName");
   const movieTitle = searchParams.get("movie_title");
   const showtime = searchParams.get("showtime");
   const showDate = searchParams.get("show_date");
-
+  const audi_number = searchParams.get("audi_number");
+  const movie_language = searchParams.get("movie_language");
   const [selectedSeats, setSelectedSeats] = useState<SelectedSeat[]>([]);
-
+  interface SeatLayoutItem {
+    seat_number: string;
+    type: string;
+    is_booked: boolean;
+    is_held: boolean;
+    selected_by_me?: boolean;
+  }
   // Fetch seats initially
   useEffect(() => {
     if (theaterId && movieTitle && showtime && showDate) {
       fetchSeatLayout(theaterId, movieTitle, showtime, showDate);
     }
   }, [theaterId, movieTitle, showtime, showDate]);
-  // -------------------------------
-  // AUTO-SYNC selectedSeats with backend `selected_by_me`
-  // -------------------------------
+
   useEffect(() => {
-    const mySeats = seatLayout.filter((s: any) => s.selected_by_me);
+    // 1️⃣ REMOVE seats that backend has now booked
+    setSelectedSeats((prev) =>
+      prev.filter(
+        (seat) =>
+          !seatLayout.some(
+            (s) => s.seat_number === seat.seat_number && s.is_booked
+          )
+      )
+    );
+
+    // ADD seats marked selected_by_me by backend
+    const mySeats = seatLayout.filter((s) => s.selected_by_me);
 
     if (mySeats.length > 0) {
       setSelectedSeats(
-        mySeats.map((s: any) => ({
+        mySeats.map((s) => ({
           seat_number: s.seat_number,
           type: s.type,
           price: getSeatPrice(s.type),
@@ -51,35 +67,45 @@ export default function SeatBookingPage() {
       );
     }
   }, [seatLayout]);
-  // Toggle seat selection
-  const handleSeatClick = (seat: any) => {
-    console.log("🖱️ Seat clicked:", seat);
 
-    if (seat.is_booked) {
-      console.log("❌ Cannot select. Booked seat.");
+
+  const handleSeatClick = async (seat: SeatLayoutItem) => {
+    const isSelected = selectedSeats.some(
+      (s) => s.seat_number === seat.seat_number
+    );
+
+    const tempBookingId = localStorage.getItem("tempBookingId");
+    if (isSelected && seat.selected_by_me && tempBookingId) {
+
+      const confirmed = window.confirm(
+        "You are removing a seat from your previous selection.\n\nDo you want to reset your booking and select new seats?"
+      );
+
+      if (!confirmed) return;
+      await releaseHold(tempBookingId);
+
+      localStorage.removeItem("tempBookingId");
+      setSelectedSeats([]);
       return;
     }
-    if (seat.is_held && !seat.selected_by_me) {
-      console.log("⛔ Cannot select. Held by other user.");
-      return;
-    }
-
-    const isSelected =
-      selectedSeats.some(s => s.seat_number === seat.seat_number) ||
-      seat.selected_by_me === true;
-
-    console.log("👉 isSelected:", isSelected);
-
+    // Normal deselect (not held-by-me from backend)
     if (isSelected) {
-      console.log("🟪 Removing seat:", seat.seat_number);
-      setSelectedSeats((prev) => prev.filter((s) => s.seat_number !== seat.seat_number));
-    } else {
-      console.log("🟣 Adding seat:", seat.seat_number);
-      setSelectedSeats((prev) => [
-        ...prev,
-        { seat_number: seat.seat_number, type: seat.type, price: getSeatPrice(seat.type) },
-      ]);
+      setSelectedSeats((prev) =>
+        prev.filter((s) => s.seat_number !== seat.seat_number)
+      );
+      return;
     }
+
+
+    // LOCAL UI update
+    setSelectedSeats((prev) => [
+      ...prev,
+      {
+        seat_number: seat.seat_number,
+        type: seat.type,
+        price: getSeatPrice(seat.type),
+      },
+    ]);
   };
 
 
@@ -91,7 +117,7 @@ export default function SeatBookingPage() {
 
   // Group seats row-wise
   const groupSeatsByRow = () => {
-    const rows: { [key: string]: any[] } = {};
+    const rows: { [key: string]: SeatLayoutItem[] } = {};
     seatLayout.forEach((seat) => {
       const row = seat.seat_number.charAt(0);
       if (!rows[row]) rows[row] = [];
@@ -111,7 +137,7 @@ export default function SeatBookingPage() {
   const handleProceed = async () => {
     const payloadSeats = selectedSeats.map((s) => s.seat_number);
 
-    // 1. If previous temp booking exists -> update seats instead of releasing
+    //If previous temp booking exists -> update seats instead of releasing
     const oldTempId = localStorage.getItem("tempBookingId");
     if (oldTempId) {
       // update existing temp booking's seats (keeps snacks intact)
@@ -129,11 +155,10 @@ export default function SeatBookingPage() {
       if (res?.tempBookingId) localStorage.setItem("tempBookingId", res.tempBookingId);
     }
 
-    // DO NOT clear snack cart here — snacks should persist across seat changes
 
     // Navigate to snacks
     router.push(
-      `/snacks?theater_id=${theaterId}&movie_title=${movieTitle}&showtime=${showtime}&show_date=${showDate}&seats=${payloadSeats.join(",")}&ticketPrice=${totalPrice}`
+      `/snacks?theater_id=${theaterId}&theater_name=${theatreName}&movie_title=${movieTitle}&showtime=${showtime}&show_date=${showDate}&audi_number=${audi_number}&movie_language=${movie_language}&seats=${payloadSeats.join(",")}&ticketPrice=${totalPrice}`
     );
   };
 
@@ -163,16 +188,6 @@ export default function SeatBookingPage() {
         <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
 
           <div className="mb-4 flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.back()}
-              className="rounded-full bg-purple-900/20 text-purple-300 hover:bg-purple-800/50 hover:text-white transition-colors"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
-
             <div className="flex items-center gap-2 text-purple-300">
               <MapPin className="h-4 w-4" />
               <p className="text-sm font-semibold">{city}</p>
@@ -220,7 +235,6 @@ export default function SeatBookingPage() {
                 {(() => {
                   const grouped = groupSeatsByRow();
                   let lastType = "";
-
                   return Object.entries(grouped)
                     .sort(([a], [b]) => a.localeCompare(b))
                     .map(([row, seats]) => {
@@ -236,7 +250,6 @@ export default function SeatBookingPage() {
                               {currentType} — ₹{getSeatPrice(seats[0].type)}
                             </h3>
                           )}
-
                           <div className="flex justify-center items-center gap-2">
                             <span className="w-6 text-center font-bold text-purple-300">{row}</span>
 
@@ -247,28 +260,24 @@ export default function SeatBookingPage() {
                               }}
                             >
                               {seats.map((seat) => {
-                                const isSelected =
-                                  seat.selected_by_me ||
-                                  selectedSeats.some((s) => s.seat_number === seat.seat_number);
-
+                                const isLocallySelected = selectedSeats.some(
+                                  (s) => s.seat_number === seat.seat_number
+                                );
                                 let seatClass = "bg-gray-800 text-white hover:bg-gray-700";
-
-                                if (isSelected) {
-                                  seatClass =
-                                    "bg-purple-600 text-white ring-2 ring-purple-400";
-                                } else if (seat.is_booked) {
-                                  seatClass =
-                                    "bg-red-600/70 text-white opacity-70 cursor-not-allowed";
-                                } else if (seat.is_held) {
-                                  seatClass =
-                                    "bg-yellow-400 text-black opacity-90 cursor-not-allowed";
+                                if (seat.is_booked) {
+                                  seatClass = "bg-red-600/70 text-white opacity-70 cursor-not-allowed";
                                 }
-
+                                else if (seat.selected_by_me || isLocallySelected) {
+                                  seatClass = "bg-purple-600 text-white ring-2 ring-purple-400";
+                                }
+                                else if (seat.is_held && !seat.selected_by_me) {
+                                  seatClass = "bg-yellow-400 text-black opacity-90 cursor-not-allowed";
+                                }
                                 return (
                                   <button
                                     key={seat.seat_number}
                                     onClick={() => handleSeatClick(seat)}
-                                    disabled={seat.is_booked || seat.is_held}
+                                    disabled={seat.is_booked || (seat.is_held && !seat.selected_by_me)}
                                     className={`h-5 w-5 rounded-sm sm:h-8 sm:w-8 md:h-9 md:w-9 flex items-center justify-center sm:rounded-md text-xs font-medium transition-all duration-200 ${seatClass}`}
                                   >
                                     {seat.seat_number.slice(1)}
@@ -327,6 +336,7 @@ export default function SeatBookingPage() {
         )}
 
       </div>
+
     </div>
   );
 }

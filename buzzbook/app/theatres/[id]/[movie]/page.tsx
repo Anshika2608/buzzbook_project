@@ -27,6 +27,7 @@ import {
   Heart
 } from "lucide-react";
 import MapModal from "@/components/modals/MapModal";
+import { useBooking } from "@/app/context/BookingContext";
 
 export default function TheatrePage() {
   const {
@@ -40,7 +41,7 @@ export default function TheatrePage() {
     fetchUniqueShowTime, wishlistTheater, addToWishlist
   } = useLocation();
   const router = useRouter();
-
+  const { releaseHold } = useBooking();
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedLanguage, setSelectedLanguage] = useState<string>("all");
   const [selectedFormat, setSelectedFormat] = useState<string>("all");
@@ -106,6 +107,14 @@ export default function TheatrePage() {
       }
     }
   }, [movieName, city, priceRange, times]);
+  useEffect(() => {
+    const tempId = localStorage.getItem("tempBookingId");
+ 
+    if (tempId) {
+      releaseHold(tempId); 
+      localStorage.removeItem("tempBookingId");
+    }
+  }, []);
 
 
   if (!movieName) {
@@ -275,7 +284,13 @@ export default function TheatrePage() {
             theatres?.map((theatre) => {
               const isTheaterInWishlist =
                 Array.isArray(wishlistTheater) &&
-                wishlistTheater.some((t) => t._id === theatre._id);
+                wishlistTheater.some((t) => {
+                  console.log("Wishlist Theater ID:", t._id);
+                  console.log("Current Theatre ID:", theatre._id);
+                  console.log("Match:", t._id === theatre._id);
+                  console.log("----------------");
+                  return t._id === theatre._id;
+                });
 
               return (
                 <Card
@@ -285,21 +300,17 @@ export default function TheatrePage() {
                   <div className="flex flex-col gap-6 lg:flex-row lg:justify-between">
                     {/* Left Column: Theatre Info & Amenities */}
                     <div className="flex-1">
-                     <div className="flex items-center gap-3">
-  <h3 className="mb-2 text-xl font-bold text-white">{theatre.name}</h3>
-
-  <button
-    onClick={() => addToWishlist(null, theatre._id)}
-    className="p-1 rounded-full border border-white/10 hover:bg-white/10 transition h-7 w-7 flex items-center justify-center mb-1"
-  >
-    <Heart
-      className={`h-4 w-4 ${
-        isTheaterInWishlist ? "text-red-500 fill-red-500" : "text-white"
-      }`}
-    />
-  </button>
-</div>
-                     
+                      <h3 className="mb-2 text-xl font-bold text-white">
+                        {theatre.name}
+                      </h3><button
+                        onClick={() => addToWishlist("", theatre._id)}
+                        className="p-1.5 rounded-full border border-white/10 hover:bg-white/10 transition"
+                      >
+                        <Heart
+                          className={`h-5 w-5 sm:h-6 sm:w-6 ${isTheaterInWishlist ? "text-red-500 fill-red-500" : "text-white"
+                            }`}
+                        />
+                      </button>
                       {theatre.address && (
                         <p
                           onClick={() => {
@@ -351,15 +362,23 @@ export default function TheatrePage() {
                             key={`${theatre._id}-${index}`}
                             variant="outline"
                             className="transform-gpu rounded-xl border-2 border-purple-600 bg-purple-800/50 p-4 text-center text-white transition-all hover:scale-105 hover:bg-purple-700"
-                            onClick={() =>
+                            onClick={() => {
+                              const audi = theatre.audis[0];
+                              const audi_number = audi?.audi_number ?? "";
+
+                              const film = audi.films_showing.find(f => f.title === movieName);
+                              const movie_language = film?.language ?? "";
+
                               router.push(
                                 `/booking?theater_id=${theatre._id}&theatreName=${encodeURIComponent(
                                   theatre.name
                                 )}&movie_title=${encodeURIComponent(
                                   movieName
-                                )}&showtime=${showtime.time}&show_date=${selectedDate}` // ⬅️ take from state
-                              )
-                            }
+                                )}&showtime=${showtime.time}&show_date=${selectedDate}&audi_number=${encodeURIComponent(
+                                  audi_number
+                                )}&movie_language=${encodeURIComponent(movie_language)}`
+                              );
+                            }}
                           >
                             <div className="flex flex-col items-center">
                               <span className="text-sm font-bold sm:text-base">{showtime.time}</span>
@@ -373,7 +392,7 @@ export default function TheatrePage() {
                     </div>
                   </div>
                 </Card>)
-})
+            })
           )}
           {selectedAddress && (
             <MapModal

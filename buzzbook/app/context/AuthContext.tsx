@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import api from "@/lib/interceptor";
-import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { route } from "@/lib/api"
 // ✅ Define user interface
@@ -59,6 +58,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await api.post(route.logout, {
         withCredentials: true,
       });
+      localStorage.removeItem("userId");
+      localStorage.removeItem("tempBookingId");
       setUser(null);
       router.push("/");
     } catch (error) {

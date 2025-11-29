@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ShoppingCart, ArrowLeft, Star } from "lucide-react";
 import { useSnacks } from "@/app/context/SnackContext";
 import { useBooking } from "@/app/context/BookingContext";
+import { Snacks } from "../types/theatre";
 
 export default function SnacksPage() {
   const router = useRouter();
@@ -19,9 +20,12 @@ export default function SnacksPage() {
   const showDate = searchParams.get("show_date");
   const movieTitle = searchParams.get("movie_title");
   const ticketPrice = Number(searchParams.get("ticketPrice") || 0);
-
+  const audi_number = searchParams.get("audi_number");
+  const movie_language = searchParams.get("movie_language");
+  const theaterName=searchParams.get("theater_name")
   const { snacks, isLoading, fetchSnacks } = useSnacks();
   const previousSnacks = JSON.parse(searchParams.get("snacks") || "[]");
+  const storageKey = `snack_cart_${theaterId}_${showDate}_${showtime}`;
 
   const [cart, setCart] = useState<any[]>([]);
 
@@ -42,15 +46,16 @@ export default function SnacksPage() {
       return;
     }
 
-    const saved = localStorage.getItem("snack_cart");
+    const saved = localStorage.getItem(storageKey);
     if (saved) {
       setCart(JSON.parse(saved));
+    } else {
+      setCart([]); // reset cart for new showtime
     }
-  }, [snacks]);
+  }, [snacks, storageKey]);
 
-  /* --------------------------
-        CART LOGIC
-  ---------------------------*/
+
+  //CART LOGIC
 
   const addToCart = (snack: any, option: any) => {
     setCart((prev) => {
@@ -93,26 +98,25 @@ export default function SnacksPage() {
 
   const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 
-  /* --------------------------
-        PROCEED
-  ---------------------------*/
+  //PROCEED
 
   const goToSummary = async () => {
+    console.log("clicked skip button")
     const tempId = localStorage.getItem("tempBookingId");
 
     if (tempId) {
-      const snacksPayload = cart.map((it) => ({
+      const snacksPayload:Snacks[] = cart.map((it) => ({
         snackId: it.id,
         unit: it.unit,
         quantity: it.qty,
       }));
 
       await updateTempBooking(tempId, snacksPayload);
-      localStorage.setItem("snack_cart", JSON.stringify(cart));
+      localStorage.setItem(storageKey, JSON.stringify(cart));
     }
 
     router.push(
-      `/payment?theater_id=${theaterId}&movie_title=${movieTitle}&showtime=${showtime}&show_date=${showDate}&seats=${seats.join(
+      `/payment?theater_id=${theaterId}&theater_name=${theaterName}&movie_title=${movieTitle}&showtime=${showtime}&show_date=${showDate}&audi_number=${audi_number}&movie_language=${movie_language}&seats=${seats.join(
         ","
       )}&ticketPrice=${ticketPrice}&snacks=${encodeURIComponent(
         JSON.stringify(cart)
@@ -124,14 +128,25 @@ export default function SnacksPage() {
     <div className="min-h-screen bg-gradient-to-b from-black via-purple-900/20 to-black text-white p-5 pb-32">
 
       {/* Back Button */}
-      <Button
-        variant="ghost"
-        className="mb-4 bg-purple-900/30 text-purple-300 hover:bg-purple-800/50 hover:text-white rounded-full px-4"
-        onClick={() => router.back()}
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back
-      </Button>
+      <div className="flex items-center justify-between mb-4">
+        <Button
+          variant="ghost"
+          className="bg-purple-900/30 text-purple-300 hover:bg-purple-800/50 hover:text-white rounded-full px-4"
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          back
+        </Button>
+
+        <Button
+          variant="outline"
+          className="ml-3 border-purple-600 text-purple-300 hover:bg-purple-800/50 hover:text-white rounded-full px-4"
+          onClick={goToSummary}
+        >
+          Skip Snacks →
+        </Button>
+      </div>
+
 
       <h2 className="text-3xl font-extrabold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent mb-6">
         Enhance Your Movie Experience 🍿

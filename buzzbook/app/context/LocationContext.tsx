@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { route } from "@/lib/api";
 import { Movie, Wishlist } from "@/app/types/movie";
-import { SeatLayout, Theatre } from "@/app/types/theatre";
+import {Theatre } from "@/app/types/theatre";
 import { CarouselMovie } from "@/app/types/movie";
 import api from "@/lib/interceptor";
 type LocationContextType = {
@@ -204,9 +204,9 @@ const getWishlist = async () => {
   }
 };
 
-useEffect(() => {
-  getWishlist(); 
-}, []);
+  useEffect(() => {
+    getWishlist();
+  }, []);
 
   //fetch coming soon 
   const fetchComingSoonMovies = async () => {
