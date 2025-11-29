@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useEffect, useState ,useRef} from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useBooking } from "@/app/context/BookingContext";
 import { useLocation } from "@/app/context/LocationContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {MapPin, Calendar, Clock, User, CreditCard } from "lucide-react";
-import SeatRemoveDialog from "@/components/removeSeatConfirm";
+import { MapPin, Calendar, Clock, User, CreditCard } from "lucide-react";
+
+
 interface SelectedSeat {
   seat_number: string;
   type: string;
@@ -20,17 +21,13 @@ export default function SeatBookingPage() {
   const searchParams = useSearchParams();
   const { seatLayout, isLoading, fetchSeatLayout, seatPrices, holdSeats, releaseHold, updateSeats, socket } = useBooking();
   const { city } = useLocation();
-const [showConfirmRemove, setShowConfirmRemove] = useState(false);
-const [resolveAction, setResolveAction] = useState<null | (() => Promise<void>)>(null);
-
-
-
   const theaterId = searchParams.get("theater_id");
   const theatreName = searchParams.get("theatreName");
   const movieTitle = searchParams.get("movie_title");
   const showtime = searchParams.get("showtime");
   const showDate = searchParams.get("show_date");
-
+  const audi_number = searchParams.get("audi_number");
+  const movie_language = searchParams.get("movie_language");
   const [selectedSeats, setSelectedSeats] = useState<SelectedSeat[]>([]);
 
   // Fetch seats initially
@@ -39,23 +36,32 @@ const [resolveAction, setResolveAction] = useState<null | (() => Promise<void>)>
       fetchSeatLayout(theaterId, movieTitle, showtime, showDate);
     }
   }, [theaterId, movieTitle, showtime, showDate]);
-  // -------------------------------
-  // AUTO-SYNC selectedSeats with backend `selected_by_me`
-  // -------------------------------
-  useEffect(() => {
 
-    const mySeats = seatLayout.filter((s: any) => s.selected_by_me);
+useEffect(() => {
+  // 1️⃣ REMOVE seats that backend has now booked
+  setSelectedSeats((prev) =>
+    prev.filter(
+      (seat) =>
+        !seatLayout.some(
+          (s) => s.seat_number === seat.seat_number && s.is_booked
+        )
+    )
+  );
 
-    if (mySeats.length > 0) {
-      setSelectedSeats(
-        mySeats.map((s: any) => ({
-          seat_number: s.seat_number,
-          type: s.type,
-          price: getSeatPrice(s.type),
-        }))
-      );
-    }
-  }, [seatLayout]);
+  // ADD seats marked selected_by_me by backend
+  const mySeats = seatLayout.filter((s) => s.selected_by_me);
+
+  if (mySeats.length > 0) {
+    setSelectedSeats(
+      mySeats.map((s) => ({
+        seat_number: s.seat_number,
+        type: s.type,
+        price: getSeatPrice(s.type),
+      }))
+    );
+  }
+}, [seatLayout]);
+
 
   const handleSeatClick = async (seat: any) => {
     const isSelected = selectedSeats.some(
@@ -83,7 +89,7 @@ const [resolveAction, setResolveAction] = useState<null | (() => Promise<void>)>
       );
       return;
     }
- 
+
 
     // LOCAL UI update
     setSelectedSeats((prev) => [
@@ -125,7 +131,7 @@ const [resolveAction, setResolveAction] = useState<null | (() => Promise<void>)>
   const handleProceed = async () => {
     const payloadSeats = selectedSeats.map((s) => s.seat_number);
 
-    // 1. If previous temp booking exists -> update seats instead of releasing
+    //If previous temp booking exists -> update seats instead of releasing
     const oldTempId = localStorage.getItem("tempBookingId");
     if (oldTempId) {
       // update existing temp booking's seats (keeps snacks intact)
@@ -143,11 +149,10 @@ const [resolveAction, setResolveAction] = useState<null | (() => Promise<void>)>
       if (res?.tempBookingId) localStorage.setItem("tempBookingId", res.tempBookingId);
     }
 
-    // DO NOT clear snack cart here — snacks should persist across seat changes
 
     // Navigate to snacks
     router.push(
-      `/snacks?theater_id=${theaterId}&movie_title=${movieTitle}&showtime=${showtime}&show_date=${showDate}&seats=${payloadSeats.join(",")}&ticketPrice=${totalPrice}`
+      `/snacks?theater_id=${theaterId}&theater_name=${theatreName}&movie_title=${movieTitle}&showtime=${showtime}&show_date=${showDate}&audi_number=${audi_number}&movie_language=${movie_language}&seats=${payloadSeats.join(",")}&ticketPrice=${totalPrice}`
     );
   };
 
@@ -253,12 +258,11 @@ const [resolveAction, setResolveAction] = useState<null | (() => Promise<void>)>
                                   (s) => s.seat_number === seat.seat_number
                                 );
                                 let seatClass = "bg-gray-800 text-white hover:bg-gray-700";
-
-                                if (seat.selected_by_me || isLocallySelected) {
-                                  seatClass = "bg-purple-600 text-white ring-2 ring-purple-400";
-                                }
-                                else if (seat.is_booked) {
+                                if (seat.is_booked) {
                                   seatClass = "bg-red-600/70 text-white opacity-70 cursor-not-allowed";
+                                }
+                                else if (seat.selected_by_me || isLocallySelected) {
+                                  seatClass = "bg-purple-600 text-white ring-2 ring-purple-400";
                                 }
                                 else if (seat.is_held && !seat.selected_by_me) {
                                   seatClass = "bg-yellow-400 text-black opacity-90 cursor-not-allowed";
@@ -326,6 +330,7 @@ const [resolveAction, setResolveAction] = useState<null | (() => Promise<void>)>
         )}
 
       </div>
+
     </div>
   );
 }

@@ -14,6 +14,9 @@ export default function PaymentPage() {
     const movie_title = searchParams.get("movie_title");
     const showtime = searchParams.get("showtime");
     const show_date = searchParams.get("show_date");
+    const audi_number = searchParams.get("audi_number");
+    const theaterName = searchParams.get("theater_name");
+    const movie_language = searchParams.get("movie_language");
     const seats = searchParams.get("seats")?.split(",") || [];
     const ticketPrice = Number(searchParams.get("ticketPrice") || 0);
     const snacks = JSON.parse(searchParams.get("snacks") || "[]");
@@ -27,53 +30,46 @@ export default function PaymentPage() {
     );
 
     const grandTotal = ticketPrice + snackTotal;
-
-    // ------------------------
     // 1) UPDATE temp booking
-    // ------------------------
-useEffect(() => {
-    const tempBookingId = localStorage.getItem("tempBookingId");
+    useEffect(() => {
+        const tempBookingId = localStorage.getItem("tempBookingId");
 
-    if (!tempBookingId) {
-        console.error("❌ No tempBookingId found!");
-        return;
-    }
-
-    const syncTempBooking = async () => {
-        try {
-            // 1️⃣ Ensure seats are synced
-            await api.put(route.updateSeats, { tempBookingId, seats, show_date });
-
-            // 2️⃣ Update snacks → this returns total_price
-            const res = await api.put(route.updateTempBooking, {
-                tempBookingId,
-                snacks: snacks.map((item: any) => ({
-                    snackId: item.id,
-                    unit: item.unit,
-                    quantity: item.qty
-                })),
-            });
-
-            // 3️⃣ Update UI with backend total
-            if (res?.data?.total_price) {
-                setUpdatedTotal(res.data.total_price);
-            } else {
-                // fallback: calculate manually
-                setUpdatedTotal(ticketPrice + snackTotal);
-            }
-
-        } catch (err) {
-            console.error("❌ Error syncing temp booking:", err);
+        if (!tempBookingId) {
+            console.error("❌ No tempBookingId found!");
+            return;
         }
-    };
 
-    syncTempBooking();
-}, [snacks, seats]);
+        const syncTempBooking = async () => {
+            try {
+
+                //  Update snacks → this returns total_price
+                const res = await api.put(route.updateTempBooking, {
+                    tempBookingId,
+                    snacks: snacks.map((item: any) => ({
+                        snackId: item.id,
+                        unit: item.unit,
+                        quantity: item.qty
+                    })),
+                });
+
+                // Update UI with backend total
+                if (res?.data?.total_price) {
+                    setUpdatedTotal(res.data.total_price);
+                } else {
+                    // fallback: calculate manually
+                    setUpdatedTotal(ticketPrice + snackTotal);
+                }
+
+            } catch (err) {
+                console.error("❌ Error syncing temp booking:", err);
+            }
+        };
+
+        syncTempBooking();
+    }, [snacks, seats]);
 
 
-    // ------------------------
     // Razorpay Loader
-    // ------------------------
     const loadRazorpayScript = () => {
         return new Promise((resolve) => {
             const script = document.createElement("script");
@@ -84,9 +80,7 @@ useEffect(() => {
         });
     };
 
-    // ------------------------
     // Handle Payment
-    // ------------------------
     const handlePayment = async () => {
         try {
             setLoading(true);
@@ -124,10 +118,34 @@ useEffect(() => {
                         razorpay_order_id: res.razorpay_order_id,
                         razorpay_payment_id: res.razorpay_payment_id,
                         razorpay_signature: res.razorpay_signature,
+                        bookingDetails: {
+                            theater_id,
+                            audi_number,
+                            movie_title,
+                            movie_language,
+                            showtime,
+                            show_date,
+                            seats,
+                            paymentId: res.razorpay_payment_id,
+                            seat_price_total: ticketPrice,
+                            snacks: snacks.map((s: { id: any; unit: any; qty: number; price: number; }) => ({
+                                snackId: s.id,
+                                unit: s.unit,
+                                quantity: s.qty,
+                                price: s.price * s.qty
+                            })),
+                            snacks_total: snackTotal,
+                            total_price: updatedTotal
+                        }
                     });
 
                     if (verifyRes.data.success) {
-                        router.push("/success");
+                        localStorage.removeItem("tempBookingId")
+                        router.push(
+                            `/success?movie_title=${movie_title}&show_date=${show_date}&showtime=${showtime}&seats=${seats.join(
+                                ","
+                            )}&audi_number=${audi_number}`
+                        );
                     }
                 },
 
@@ -156,7 +174,7 @@ useEffect(() => {
 
                     <div className="space-y-3 text-purple-200">
                         <p><span className="text-purple-400 font-medium">Movie:</span> {movie_title}</p>
-                        <p><span className="text-purple-400 font-medium">Theater:</span> {theater_id}</p>
+                        <p><span className="text-purple-400 font-medium">Theater:</span> {theaterName}</p>
                         <p><span className="text-purple-400 font-medium">Date:</span> {show_date}</p>
                         <p><span className="text-purple-400 font-medium">Showtime:</span> {showtime}</p>
                         <p><span className="text-purple-400 font-medium">Seats:</span> {seats.join(", ")}</p>

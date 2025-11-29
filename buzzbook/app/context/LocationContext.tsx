@@ -24,8 +24,8 @@ type LocationContextType = {
   fetchUniqueShowTime: (city: string, selectedRange: string, movieTitle: string) => Promise<void>
   addToWishlist: (movieId: string, theaterId: string | null) => Promise<void>;
   wishlistMovies: Wishlist[];
-   wishlistTheater: Wishlist[];
-  getWishlist:()=>Promise<void>;
+  wishlistTheater: Wishlist[];
+  getWishlist: () => Promise<void>;
 };
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -168,38 +168,38 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
     fetchMovies(city);
   }, [city]);
 
-//wishlist
-const addToWishlist = async (movieId: string, theaterId: string | null) => {
-  console.log("thaeater",theaterId)
-  try {
-    const res = await api.post(`${route.wishlist}/add`, {
-      movieId,
-      theaterId,
-    });
-    await getWishlist();
-    return res.data;
-  } catch (err: any) {
-    console.error("❌ Error adding to wishlist", err.response?.data || err.message);
-    throw err;
-  }
-};
-//get wishlist 
-const getWishlist = async () => {
-  try {
-    const res = await api.get(`${route.wishlist}`);
-    setWishlistMovies(res.data.wishlist.movies || []);
-    setWishlistTheater(res.data.wishlist.theaters || [])
-    
-  } catch (err: any) {
-    console.error("❌ Error fetching wishlist", err.response?.data || err.message);
-    setWishlistMovies([]);
-    setWishlistTheater([])
-  }
-};
+  //wishlist
+  const addToWishlist = async (movieId: string, theaterId: string | null) => {
+    console.log("thaeater", theaterId)
+    try {
+      const res = await api.post(`${route.wishlist}/add`, {
+        movieId,
+        theaterId,
+      });
+      await getWishlist();
+      return res.data;
+    } catch (err: any) {
+      console.error("❌ Error adding to wishlist", err.response?.data || err.message);
+      throw err;
+    }
+  };
+  //get wishlist 
+  const getWishlist = async () => {
+    try {
+      const res = await api.get(`${route.wishlist}`);
+      setWishlistMovies(res.data.wishlist.movies || []);
+      setWishlistTheater(res.data.wishlist.theaters || [])
 
-useEffect(() => {
-  getWishlist(); 
-}, []);
+    } catch (err: any) {
+      console.error("❌ Error fetching wishlist", err.response?.data || err.message);
+      setWishlistMovies([]);
+      setWishlistTheater([])
+    }
+  };
+
+  useEffect(() => {
+    getWishlist();
+  }, []);
 
   //fetch coming soon 
   const fetchComingSoonMovies = async () => {

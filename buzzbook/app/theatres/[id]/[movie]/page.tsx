@@ -27,6 +27,7 @@ import {
   Heart
 } from "lucide-react";
 import MapModal from "@/components/modals/MapModal";
+import { useBooking } from "@/app/context/BookingContext";
 
 export default function TheatrePage() {
   const {
@@ -40,7 +41,7 @@ export default function TheatrePage() {
     fetchUniqueShowTime, wishlistTheater, addToWishlist
   } = useLocation();
   const router = useRouter();
-
+  const { releaseHold } = useBooking();
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedLanguage, setSelectedLanguage] = useState<string>("all");
   const [selectedFormat, setSelectedFormat] = useState<string>("all");
@@ -103,6 +104,14 @@ export default function TheatrePage() {
       }
     }
   }, [movieName, city, priceRange, times]);
+  useEffect(() => {
+    const tempId = localStorage.getItem("tempBookingId");
+ 
+    if (tempId) {
+      releaseHold(tempId); 
+      localStorage.removeItem("tempBookingId");
+    }
+  }, []);
 
 
   if (!movieName) {
@@ -270,15 +279,15 @@ export default function TheatrePage() {
             </Card>
           ) : (
             theatres?.map((theatre) => {
-             const isTheaterInWishlist =
-    Array.isArray(wishlistTheater) &&
-    wishlistTheater.some((t) => {
-      console.log("Wishlist Theater ID:", t._id);
-      console.log("Current Theatre ID:", theatre._id);
-      console.log("Match:", t._id === theatre._id);
-      console.log("----------------");
-      return t._id === theatre._id;
-    });
+              const isTheaterInWishlist =
+                Array.isArray(wishlistTheater) &&
+                wishlistTheater.some((t) => {
+                  console.log("Wishlist Theater ID:", t._id);
+                  console.log("Current Theatre ID:", theatre._id);
+                  console.log("Match:", t._id === theatre._id);
+                  console.log("----------------");
+                  return t._id === theatre._id;
+                });
 
               return (
                 <Card
@@ -291,7 +300,7 @@ export default function TheatrePage() {
                       <h3 className="mb-2 text-xl font-bold text-white">
                         {theatre.name}
                       </h3><button
-                        onClick={() => addToWishlist(null, theatre._id)}
+                        onClick={() => addToWishlist("", theatre._id)}
                         className="p-1.5 rounded-full border border-white/10 hover:bg-white/10 transition"
                       >
                         <Heart
@@ -350,15 +359,23 @@ export default function TheatrePage() {
                             key={`${theatre._id}-${index}`}
                             variant="outline"
                             className="transform-gpu rounded-xl border-2 border-purple-600 bg-purple-800/50 p-4 text-center text-white transition-all hover:scale-105 hover:bg-purple-700"
-                            onClick={() =>
+                            onClick={() => {
+                              const audi = theatre.audis[0];
+                              const audi_number = audi?.audi_number ?? "";
+
+                              const film = audi.films_showing.find(f => f.title === movieName);
+                              const movie_language = film?.language ?? "";
+
                               router.push(
                                 `/booking?theater_id=${theatre._id}&theatreName=${encodeURIComponent(
                                   theatre.name
                                 )}&movie_title=${encodeURIComponent(
                                   movieName
-                                )}&showtime=${showtime.time}&show_date=${selectedDate}` // ⬅️ take from state
-                              )
-                            }
+                                )}&showtime=${showtime.time}&show_date=${selectedDate}&audi_number=${encodeURIComponent(
+                                  audi_number
+                                )}&movie_language=${encodeURIComponent(movie_language)}`
+                              );
+                            }}
                           >
                             <div className="flex flex-col items-center">
                               <span className="text-sm font-bold sm:text-base">{showtime.time}</span>
@@ -372,7 +389,7 @@ export default function TheatrePage() {
                     </div>
                   </div>
                 </Card>)
-})
+            })
           )}
           {selectedAddress && (
             <MapModal
