@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useBooking } from "@/app/context/BookingContext";
 import { useLocation } from "@/app/context/LocationContext";
@@ -19,7 +19,7 @@ interface SelectedSeat {
 export default function SeatBookingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { seatLayout, isLoading, fetchSeatLayout, seatPrices, holdSeats, releaseHold, updateSeats, socket } = useBooking();
+  const { seatLayout, isLoading, fetchSeatLayout, seatPrices, holdSeats, releaseHold, updateSeats } = useBooking();
   const { city } = useLocation();
   const theaterId = searchParams.get("theater_id");
   const theatreName = searchParams.get("theatreName");
@@ -29,7 +29,13 @@ export default function SeatBookingPage() {
   const audi_number = searchParams.get("audi_number");
   const movie_language = searchParams.get("movie_language");
   const [selectedSeats, setSelectedSeats] = useState<SelectedSeat[]>([]);
-
+  interface SeatLayoutItem {
+    seat_number: string;
+    type: string;
+    is_booked: boolean;
+    is_held: boolean;
+    selected_by_me?: boolean;
+  }
   // Fetch seats initially
   useEffect(() => {
     if (theaterId && movieTitle && showtime && showDate) {
@@ -37,33 +43,33 @@ export default function SeatBookingPage() {
     }
   }, [theaterId, movieTitle, showtime, showDate]);
 
-useEffect(() => {
-  // 1️⃣ REMOVE seats that backend has now booked
-  setSelectedSeats((prev) =>
-    prev.filter(
-      (seat) =>
-        !seatLayout.some(
-          (s) => s.seat_number === seat.seat_number && s.is_booked
-        )
-    )
-  );
-
-  // ADD seats marked selected_by_me by backend
-  const mySeats = seatLayout.filter((s) => s.selected_by_me);
-
-  if (mySeats.length > 0) {
-    setSelectedSeats(
-      mySeats.map((s) => ({
-        seat_number: s.seat_number,
-        type: s.type,
-        price: getSeatPrice(s.type),
-      }))
+  useEffect(() => {
+    // 1️⃣ REMOVE seats that backend has now booked
+    setSelectedSeats((prev) =>
+      prev.filter(
+        (seat) =>
+          !seatLayout.some(
+            (s) => s.seat_number === seat.seat_number && s.is_booked
+          )
+      )
     );
-  }
-}, [seatLayout]);
+
+    // ADD seats marked selected_by_me by backend
+    const mySeats = seatLayout.filter((s) => s.selected_by_me);
+
+    if (mySeats.length > 0) {
+      setSelectedSeats(
+        mySeats.map((s) => ({
+          seat_number: s.seat_number,
+          type: s.type,
+          price: getSeatPrice(s.type),
+        }))
+      );
+    }
+  }, [seatLayout]);
 
 
-  const handleSeatClick = async (seat: any) => {
+  const handleSeatClick = async (seat: SeatLayoutItem) => {
     const isSelected = selectedSeats.some(
       (s) => s.seat_number === seat.seat_number
     );
@@ -111,7 +117,7 @@ useEffect(() => {
 
   // Group seats row-wise
   const groupSeatsByRow = () => {
-    const rows: { [key: string]: any[] } = {};
+    const rows: { [key: string]: SeatLayoutItem[] } = {};
     seatLayout.forEach((seat) => {
       const row = seat.seat_number.charAt(0);
       if (!rows[row]) rows[row] = [];

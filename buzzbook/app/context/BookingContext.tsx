@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useRef } from "r
 import { io, Socket } from "socket.io-client";
 import { route } from "@/lib/api";
 import api from "@/lib/interceptor";
+import { Snacks } from "../types/theatre";
 
 interface Seat {
   seat_number: string;
@@ -21,6 +22,9 @@ interface HoldPayload {
   seats: string[];
 }
 
+// interface seat_Hold {
+//   seat_number:string
+// }
 interface BookingContextType {
   seatLayout: Seat[];
   isLoading: boolean;
@@ -28,7 +32,7 @@ interface BookingContextType {
   fetchSeatLayout: (t: string, m: string, s: string, d: string) => Promise<void>;
   holdSeats: (payload: HoldPayload) => Promise<any>;
   updateSeats: (tempBookingId: string, seats: string[], show_date: string) => Promise<any>;
-  updateTempBooking: (tempId: string, snacks: any[]) => Promise<void>;
+  updateTempBooking: (tempId: string, snacks: Snacks[]) => Promise<void>;
   releaseHold: (tempId: string) => Promise<void>;
   socket: Socket | null;
 }
@@ -189,7 +193,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
 
 
   // UPDATE SNACKS ONLY
-  const updateTempBooking = async (tempId: string, snacks: any[]) => {
+  const updateTempBooking = async (tempId: string, snacks: Snacks[]) => {
     await api.put(route.updateTempBooking, {
       tempBookingId: tempId,
       snacks,

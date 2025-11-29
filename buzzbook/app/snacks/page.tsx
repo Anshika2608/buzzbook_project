@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ShoppingCart, ArrowLeft, Star } from "lucide-react";
 import { useSnacks } from "@/app/context/SnackContext";
 import { useBooking } from "@/app/context/BookingContext";
+import { Snacks } from "../types/theatre";
 
 export default function SnacksPage() {
   const router = useRouter();
@@ -104,7 +105,7 @@ export default function SnacksPage() {
     const tempId = localStorage.getItem("tempBookingId");
 
     if (tempId) {
-      const snacksPayload = cart.map((it) => ({
+      const snacksPayload:Snacks[] = cart.map((it) => ({
         snackId: it.id,
         unit: it.unit,
         quantity: it.qty,

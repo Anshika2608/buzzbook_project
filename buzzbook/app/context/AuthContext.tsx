@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import api from "@/lib/interceptor";
-import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { route } from "@/lib/api"
 // ✅ Define user interface

@@ -29,7 +29,6 @@ export default function PaymentPage() {
         0
     );
 
-    const grandTotal = ticketPrice + snackTotal;
     // 1) UPDATE temp booking
     useEffect(() => {
         const tempBookingId = localStorage.getItem("tempBookingId");
