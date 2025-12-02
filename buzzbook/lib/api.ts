@@ -11,6 +11,7 @@ export const route = {
     'movieDetails' : api + 'movie/movieDetails/',
     'theatre' : api +'theater/get_theater/',
     'comingSoon' : api + 'movie/comingSoon',
+    'review': api + 'movie',
     'showtime':api + 'showtime/get_Showtime',
     'priceRange': api + 'theater/prices',
     'theatreByPrice': api + 'theater/filterTheaters',

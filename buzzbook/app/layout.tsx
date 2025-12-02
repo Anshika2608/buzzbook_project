@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <LocationProvider>
             <BookingProvider>
               <SnackProvider>
-
+            
                 <ClientLayout>{children}</ClientLayout>
 
                 <Toaster richColors position="top-right" />

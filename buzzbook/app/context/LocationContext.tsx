@@ -24,8 +24,15 @@ type LocationContextType = {
   fetchUniqueShowTime: (city: string, selectedRange: string, movieTitle: string) => Promise<void>
   addToWishlist: (movieId: string, theaterId: string | null) => Promise<void>;
   wishlistMovies: Wishlist[];
-  wishlistTheater: Wishlist[];
-  getWishlist: () => Promise<void>;
+   wishlistTheater: Wishlist[];
+  getWishlist:()=>Promise<void>;
+  addReview: (
+  movieId: string,
+  payload: { critic_name: string; rating: number; review: string }
+) => Promise<void>;
+getReviewReplies: (movieId: string, reviewId: string) => Promise<void>;
+addReply: (movieId: string, reviewId: string, reply: string) => Promise<void>;
+
 };
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -168,34 +175,34 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
     fetchMovies(city);
   }, [city]);
 
-  //wishlist
-  const addToWishlist = async (movieId: string, theaterId: string | null) => {
-    console.log("thaeater", theaterId)
-    try {
-      const res = await api.post(`${route.wishlist}/add`, {
-        movieId,
-        theaterId,
-      });
-      await getWishlist();
-      return res.data;
-    } catch (err: any) {
-      console.error("❌ Error adding to wishlist", err.response?.data || err.message);
-      throw err;
-    }
-  };
-  //get wishlist 
-  const getWishlist = async () => {
-    try {
-      const res = await api.get(`${route.wishlist}`);
-      setWishlistMovies(res.data.wishlist.movies || []);
-      setWishlistTheater(res.data.wishlist.theaters || [])
-
-    } catch (err: any) {
-      console.error("❌ Error fetching wishlist", err.response?.data || err.message);
-      setWishlistMovies([]);
-      setWishlistTheater([])
-    }
-  };
+//wishlist
+const addToWishlist = async (movieId: string, theaterId: string | null) => {
+  console.log("thaeater",theaterId)
+  try {
+    const res = await api.post(`${route.wishlist}/add`, {
+      movieId,
+      theaterId,
+    });
+    await getWishlist();
+    return res.data;
+  } catch (err) {
+    console.error("❌ Error adding to wishlist", err);
+    throw err;
+  }
+};
+//get wishlist 
+const getWishlist = async () => {
+  try {
+    const res = await api.get(`${route.wishlist}`);
+    setWishlistMovies(res.data.wishlist.movies || []);
+    setWishlistTheater(res.data.wishlist.theaters || [])
+    
+  } catch (err) {
+    console.error("❌ Error fetching wishlist", err);
+    setWishlistMovies([]);
+    setWishlistTheater([])
+  }
+};
 
   useEffect(() => {
     getWishlist();
@@ -238,6 +245,53 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
     fetchComingSoonMovies();
   }, []);
 
+const addReview = async (
+  movieId: string,
+  payload: {
+    critic_name: string;
+    rating: number;
+    review: string;
+  }
+) => {
+  try {
+    const res = await api.post(`${route.review}/${movieId}/reviews`, payload);
+    await fetchMovieDetails(movieId);
+
+    return res.data;
+  } catch (err) {
+    console.error("❌ Error adding review", err);
+    throw err;
+  }
+};
+
+const getReviewReplies = async (movieId: string, reviewId: string) => {
+  try {
+    const res = await api.get(`${route.review}/${movieId}/reviews/${reviewId}/replies`);
+    return res.data.replies || [];
+  } catch (err: any) {
+    console.error("❌ Error fetching review replies", err.response?.data || err.message);
+    return [];
+  }
+};
+
+const addReply = async (movieId: string, reviewId: string, reply: string) => {
+  try {
+    const res = await api.post(
+      `${route.review}/${movieId}/reviews/${reviewId}/replies`,
+      reply
+    );
+
+    // Optional: Refresh movie details so UI updates automatically
+    await fetchMovieDetails(movieId);
+    await getReviewReplies(movieId,reviewId)
+    return res.data;
+  } catch (err: any) {
+    console.error("❌ Error adding reply", err.response?.data || err.message);
+    throw err;
+  }
+};
+
+
 
 
   return (
@@ -262,7 +316,10 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
         addToWishlist,
         wishlistMovies,
         getWishlist,
-        wishlistTheater
+        wishlistTheater,
+        addReview,
+        getReviewReplies,
+        addReply
       }}
     >
       {children}

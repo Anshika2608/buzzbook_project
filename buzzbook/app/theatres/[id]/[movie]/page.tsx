@@ -51,6 +51,9 @@ export default function TheatrePage() {
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const movieName = movieDet?.title ?? "";
   console.log(theatres)
+  const isTheaterInWishlist = wishlistTheater.some(
+    (t) => t._id === theatres._id
+  );
 
   const generateDates = () => {
     return Array.from({ length: 7 }).map((_, i) => {

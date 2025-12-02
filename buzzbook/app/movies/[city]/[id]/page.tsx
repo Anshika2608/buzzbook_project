@@ -9,20 +9,31 @@ import { Badge } from "@/components/ui/badge"
 import { Star, Calendar, Users, Play, Heart } from "lucide-react"
 import Link from "next/link"
 import AvatarImage from "@/components/fallback"
+import { Share2 } from "lucide-react"
+import ReviewModal from "@/components/modals/ReviewModal"
+import ReplyModal from "@/components/modals/ReplyModal"
+import ReplyThread from "@/components/modals/ReplyThread"
 
 export default function MovieDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const { addToWishlist ,wishlistMovies} = useLocation();
-  const { fetchMovieDetails,city } = useLocation()
-  const [movie, setMovie] = useState<Movie | null>(null)
+  const { addToWishlist ,wishlistMovies,addReview,addReply,getReviewReplies} = useLocation();
+const { movieDet, fetchMovieDetails, city, } = useLocation()
+  // const [movie, setMovie] = useState<Movie | null>(null)
+  const movie = movieDet
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [activeReply, setActiveReply] = useState<string | null>(null);
 
+
+// useEffect(() => {
+//   if (id && (!movie || movie._id !== id)) {
+//     fetchMovieDetails(id).then((data) => {
+//       if (data) setMovie(data);
+//     });
+//   }
+// }, [id, fetchMovieDetails, movie]);
 useEffect(() => {
-  if (id && (!movie || movie._id !== id)) {
-    fetchMovieDetails(id).then((data) => {
-      if (data) setMovie(data);
-    });
-  }
-}, [id, fetchMovieDetails, movie]);
+  if (id) fetchMovieDetails(id);
+}, [id]);
 
   if (!movie) {
     return (
@@ -82,10 +93,42 @@ const isInWishlist = wishlistMovies.some(
   (m) => m._id === movie._id
 );
 
+const handleShare = () => {
+  const url = window.location.href;
+
+  if (navigator.share) {
+    navigator.share({
+      title: movie.title,
+      text: "Check out this movie!",
+      url,
+    });
+  } else {
+    navigator.clipboard.writeText(url);
+    alert("Link copied to clipboard!");
+  }
+};
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/10 to-slate-950 font-sans text-white">
       {/* Hero Section */}
-      <div className="relative h-screen w-full overflow-hidden sm:h-[80vh] lg:h-screen">
+      <div className="relative h-[60vh] w-full overflow-hidden sm:h-[80vh] lg:h-screen">
+        <div className="absolute top-16 sm:top-24 right-10 sm:right-16 z-30">
+  <button
+    onClick={handleShare}
+    className="
+      flex items-center gap-2
+      px-4 py-2 rounded-xl
+      bg-white/10 border border-white/20 backdrop-blur-xl
+      text-white font-medium
+      shadow-lg hover:bg-white/20 hover:shadow-xl
+      transition-all duration-300
+    "
+  >
+    <Share2 className="h-5 w-5 text-white" />
+    <span className="text-sm sm:text-base">Share</span>
+  </button>
+</div>
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -476,8 +519,21 @@ const isInWishlist = wishlistMovies.some(
                           <Heart className="h-3 w-3" />
                           Helpful ({review.helpful_count || 0})
                         </button>
-                        <button className="transition-colors hover:text-white">Reply</button>
+                       <button
+  className="transition-colors hover:text-white"
+  onClick={() => setActiveReply(review._id)}
+>
+  Reply
+</button>
                       </div>
+                      {activeReply === review._id && (
+  <ReplyThread
+    movieId={movie._id}
+    reviewId={review._id}
+    getReplies={getReviewReplies}
+    postReply={(id, rid, payload) => addReply(id, rid, payload.reply)}
+  />
+)}
                     </div>
                   ))}
                 </div>
@@ -506,12 +562,13 @@ const isInWishlist = wishlistMovies.some(
 
             {/* Write Review Button */}
             <div className="mt-6 text-center sm:mt-8">
-              <Button
-                variant="outline"
-                className="rounded-xl border-purple-500/30 bg-purple-500/10 px-6 py-3 text-purple-300 transition-all duration-300 hover:bg-purple-500/20 hover:text-white"
-              >
-                Write a Review
-              </Button>
+<Button
+  variant="outline"
+  className="rounded-xl border-purple-500/30 bg-purple-500/10 px-6 py-3 text-purple-300 hover:bg-purple-500/20 hover:text-white"
+  onClick={() => setReviewOpen(true)}
+>
+  Write a Review
+</Button>
             </div>
           </div>
         </div>
@@ -537,6 +594,22 @@ const isInWishlist = wishlistMovies.some(
           </div>
         </div>
       </div>
+      <ReviewModal
+  open={reviewOpen}
+  onClose={() => setReviewOpen(false)}
+  onSubmit={(data) => addReview(movie._id, data)}
+/>
+
+<ReplyModal
+  open={activeReply !== null}
+  onClose={() => setActiveReply(null)}
+  onSubmit={(replyText) => {
+    addReply(movie._id, activeReply!, replyText);
+    setActiveReply(null);
+  }}
+/>
+
     </div>
+
   )
 }
