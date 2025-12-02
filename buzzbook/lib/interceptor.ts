@@ -1,5 +1,10 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
+
 import { route } from "@/lib/api";
+interface FailedRequest {
+  resolve: (token?: string | null) => void;
+  reject: (err: AxiosError | Error) => void;
+}
 // ===============================
 // Create Axios Instance
 // ===============================
@@ -15,9 +20,9 @@ const api = axios.create({
 // Auto Refresh Access Token + Retry Logic
 // ===============================
 let isRefreshing = false;
-let failedQueue: any[] = [];
+let failedQueue: FailedRequest[] = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: AxiosError | Error | null, token: string | null = null) => {
   failedQueue.forEach((promise) => {
     if (error) promise.reject(error);
     else promise.resolve(token);
@@ -55,9 +60,13 @@ api.interceptors.response.use(
         // Retry the original request
         return api(originalRequest);
       } catch (refreshError) {
-        processQueue(refreshError, null);
+        const err: Error =
+          refreshError instanceof Error
+            ? refreshError
+            : new Error("Unexpected refresh error");
 
-        return Promise.reject(refreshError);
+        processQueue(err, null);
+        return Promise.reject(err);
       } finally {
         isRefreshing = false;
       }

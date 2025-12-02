@@ -29,8 +29,12 @@ import {
   ForgotPasswordSchema,
   ForgotPasswordFormData,
 } from "@/lib/validation/ForgotSchema";
+interface ForgotPasswordModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
 
-export default function ForgotPasswordModal({ open, onOpenChange }: any) {
+export default function ForgotPasswordModal({ open, onOpenChange }: ForgotPasswordModalProps) {
   const form = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(ForgotPasswordSchema),
     defaultValues: { email: "" },

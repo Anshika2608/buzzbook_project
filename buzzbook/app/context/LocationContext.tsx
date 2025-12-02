@@ -5,6 +5,7 @@ import { Movie, Wishlist } from "@/app/types/movie";
 import {Theatre } from "@/app/types/theatre";
 import { CarouselMovie } from "@/app/types/movie";
 import api from "@/lib/interceptor";
+import { AxiosError } from "axios";
 type LocationContextType = {
   city: string;
   setCity: (city: string) => void;
@@ -268,8 +269,12 @@ const getReviewReplies = async (movieId: string, reviewId: string) => {
   try {
     const res = await api.get(`${route.review}/${movieId}/reviews/${reviewId}/replies`);
     return res.data.replies || [];
-  } catch (err: any) {
-    console.error("❌ Error fetching review replies", err.response?.data || err.message);
+  } catch (err) {
+    const error=err as AxiosError
+    console.error(
+      "❌ Error fetching review replies",
+      error.response?.data || error.message
+    );
     return [];
   }
 };
@@ -285,8 +290,9 @@ const addReply = async (movieId: string, reviewId: string, reply: string) => {
     await fetchMovieDetails(movieId);
     await getReviewReplies(movieId,reviewId)
     return res.data;
-  } catch (err: any) {
-    console.error("❌ Error adding reply", err.response?.data || err.message);
+  } catch (err) {
+    const error=err as AxiosError
+    console.error("❌ Error adding reply", error.response?.data || error.message);
     throw err;
   }
 };

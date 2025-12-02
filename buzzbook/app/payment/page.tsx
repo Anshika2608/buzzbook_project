@@ -5,7 +5,35 @@ import { useSearchParams, useRouter } from "next/navigation";
 import api from "@/lib/interceptor";
 import { route } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-
+interface SnackItem {
+    id: string;
+    unit: string;
+    qty: number;
+    price: number;
+}
+interface RazorpayResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  handler: (res: RazorpayResponse) => Promise<void>;
+  theme: { color: string };
+}
+interface RazorpayInstance {
+  open: () => void;
+}
+declare global {
+  interface Window {
+    Razorpay: new (options: RazorpayOptions) =>RazorpayInstance;
+  }
+}
 export default function PaymentPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -19,13 +47,13 @@ export default function PaymentPage() {
     const movie_language = searchParams.get("movie_language");
     const seats = searchParams.get("seats")?.split(",") || [];
     const ticketPrice = Number(searchParams.get("ticketPrice") || 0);
-    const snacks = JSON.parse(searchParams.get("snacks") || "[]");
+    const snacks = JSON.parse(searchParams.get("snacks") || "[]") as SnackItem[];
 
     const [loading, setLoading] = useState(false);
     const [updatedTotal, setUpdatedTotal] = useState(ticketPrice);
 
     const snackTotal = snacks.reduce(
-        (sum: number, item: any) => sum + item.qty * item.price,
+        (sum, item) => sum + item.qty * item.price,
         0
     );
 
@@ -44,7 +72,7 @@ export default function PaymentPage() {
                 //  Update snacks → this returns total_price
                 const res = await api.put(route.updateTempBooking, {
                     tempBookingId,
-                    snacks: snacks.map((item: any) => ({
+                    snacks: snacks.map((item) => ({
                         snackId: item.id,
                         unit: item.unit,
                         quantity: item.qty
@@ -104,7 +132,7 @@ export default function PaymentPage() {
                 return;
             }
 
-            const options: any = {
+            const options:RazorpayOptions= {
                 key,
                 amount: orderAmount,
                 currency: "INR",
@@ -112,7 +140,7 @@ export default function PaymentPage() {
                 description: "Movie + Snacks Payment",
                 order_id,
 
-                handler: async function (res: any) {
+                handler: async function (res:RazorpayResponse) {
                     const verifyRes = await api.post(`${route.verifyPayment}`, {
                         razorpay_order_id: res.razorpay_order_id,
                         razorpay_payment_id: res.razorpay_payment_id,
@@ -127,7 +155,7 @@ export default function PaymentPage() {
                             seats,
                             paymentId: res.razorpay_payment_id,
                             seat_price_total: ticketPrice,
-                            snacks: snacks.map((s: { id: any; unit: any; qty: number; price: number; }) => ({
+                            snacks: snacks.map((s:SnackItem) => ({
                                 snackId: s.id,
                                 unit: s.unit,
                                 quantity: s.qty,
@@ -151,12 +179,13 @@ export default function PaymentPage() {
                 theme: { color: "#a855f7" },
             };
 
-            const rzp = new (window as any).Razorpay(options);
+            const rzp = new window.Razorpay(options);
             rzp.open();
 
             setLoading(false);
         } catch (err) {
             alert("Payment failed!");
+            console.error("❌ Payment failed:", err);
             setLoading(false);
         }
     };
@@ -194,7 +223,7 @@ export default function PaymentPage() {
                     {snacks.length === 0 ? (
                         <p className="text-purple-400">No snacks selected</p>
                     ) : (
-                        snacks.map((item: any, i: number) => (
+                        snacks.map((item:SnackItem, i: number) => (
                             <div key={i} className="flex justify-between py-2 text-purple-200">
                                 <span>{item.unit} × {item.qty}</span>
                                 <span>₹{item.qty * item.price}</span>

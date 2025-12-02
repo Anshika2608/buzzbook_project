@@ -20,7 +20,7 @@ import { useLocation } from "@/app/context/LocationContext"
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { user, logout } = useAuth()
-  const { city, movies } = useLocation()
+  const { city} = useLocation()
 
 
   return (

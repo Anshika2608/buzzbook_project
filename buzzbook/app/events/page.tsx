@@ -6,7 +6,7 @@ export default function EventsPage() {
       </h1>
 
       <p className="text-gray-300 text-lg max-w-2xl text-center mb-10">
-        We're curating spectacular events, shows, and experiences just for you. Stay tuned
+        We&apos;re curating spectacular events, shows, and experiences just for you. Stay tuned
         for exciting announcements and exclusive releases!
       </p>
 

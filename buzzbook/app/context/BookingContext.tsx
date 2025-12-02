@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useRef } from "r
 import { io, Socket } from "socket.io-client";
 import { route } from "@/lib/api";
 import api from "@/lib/interceptor";
-import { Snacks } from "../types/theatre";
+import { SelectedSnack } from "../types/snacks";
 
 interface Seat {
   seat_number: string;
@@ -21,7 +21,25 @@ interface HoldPayload {
   show_date: string;
   seats: string[];
 }
-
+interface HoldSeatsResponse {
+  message: string;
+  tempBookingId: string;
+  seats: string[];
+  holdExpiresAt: string;
+  seat_price_total: number;
+  snacks_total: number;
+  total_price: number;
+  userId: string;
+}
+interface updateSeatResponse{
+  message:string;
+  seats:string[];
+  seat_price_total:number,
+  snacks_total:number,
+  total_price:number,
+  hold_expires_at:string,
+  tempBookingId:string;
+}
 // interface seat_Hold {
 //   seat_number:string
 // }
@@ -30,9 +48,9 @@ interface BookingContextType {
   isLoading: boolean;
   seatPrices: Record<string, number>;
   fetchSeatLayout: (t: string, m: string, s: string, d: string) => Promise<void>;
-  holdSeats: (payload: HoldPayload) => Promise<any>;
-  updateSeats: (tempBookingId: string, seats: string[], show_date: string) => Promise<any>;
-  updateTempBooking: (tempId: string, snacks: Snacks[]) => Promise<void>;
+  holdSeats: (payload: HoldPayload) => Promise<HoldSeatsResponse>;
+  updateSeats: (tempBookingId: string, seats: string[], show_date: string) => Promise<updateSeatResponse>;
+  updateTempBooking: (tempId: string, snacks: SelectedSnack[]) => Promise<void>;
   releaseHold: (tempId: string) => Promise<void>;
   socket: Socket | null;
 }
@@ -147,14 +165,6 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
       });
 
       const newLayout: Seat[] = res.data.seating_layout.flat();
-
-      // // ❗ DO NOT copy previous selected_by_me
-      // // ❗ Reset selected_by_me for new movie/showtime
-      // const cleanedLayout = newLayout.map((seat: Seat) => ({
-      //   ...seat,
-      //   selected_by_me: false,
-      // }));
-
       setSeatLayout(newLayout);
       setSeatPrices(res.data.prices);
     } finally {
@@ -162,10 +172,6 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
     }
   };
 
-
-
-
-  // HOLD SEATS (only once)
   // HOLD SEATS (create temp booking)
   const holdSeats = async (payload: HoldPayload) => {
     const res = await api.post(route.hold, payload, { withCredentials: true });
@@ -193,7 +199,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
 
 
   // UPDATE SNACKS ONLY
-  const updateTempBooking = async (tempId: string, snacks: Snacks[]) => {
+  const updateTempBooking = async (tempId: string, snacks: SelectedSnack[]) => {
     await api.put(route.updateTempBooking, {
       tempBookingId: tempId,
       snacks,

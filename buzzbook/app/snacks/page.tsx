@@ -7,7 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ShoppingCart, ArrowLeft, Star } from "lucide-react";
 import { useSnacks } from "@/app/context/SnackContext";
 import { useBooking } from "@/app/context/BookingContext";
-import { Snacks } from "../types/theatre";
+// import { Snacks } from "../types/theatre";
+import { Snack,SnackOption,CartItem ,SelectedSnack} from "../types/snacks";
 
 export default function SnacksPage() {
   const router = useRouter();
@@ -22,12 +23,12 @@ export default function SnacksPage() {
   const ticketPrice = Number(searchParams.get("ticketPrice") || 0);
   const audi_number = searchParams.get("audi_number");
   const movie_language = searchParams.get("movie_language");
-  const theaterName=searchParams.get("theater_name")
+  const theaterName = searchParams.get("theater_name")
   const { snacks, isLoading, fetchSnacks } = useSnacks();
-  const previousSnacks = JSON.parse(searchParams.get("snacks") || "[]");
+  const previousSnacks = JSON.parse(searchParams.get("snacks") || "[]") as  CartItem[];
   const storageKey = `snack_cart_${theaterId}_${showDate}_${showtime}`;
 
-  const [cart, setCart] = useState<any[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
 
   /* --------------------------
        FETCH SNACKS
@@ -57,7 +58,7 @@ export default function SnacksPage() {
 
   //CART LOGIC
 
-  const addToCart = (snack: any, option: any) => {
+  const addToCart = (snack: Snack, option: SnackOption) => {
     setCart((prev) => {
       const existing = prev.find(
         (item) =>
@@ -77,7 +78,7 @@ export default function SnacksPage() {
     });
   };
 
-  const decreaseQty = (snack: any, option: any) => {
+  const decreaseQty = (snack:Snack, option: SnackOption) => {
     setCart((prev) =>
       prev
         .map((item) =>
@@ -105,7 +106,7 @@ export default function SnacksPage() {
     const tempId = localStorage.getItem("tempBookingId");
 
     if (tempId) {
-      const snacksPayload:Snacks[] = cart.map((it) => ({
+      const snacksPayload: SelectedSnack[] = cart.map((it) => ({
         snackId: it.id,
         unit: it.unit,
         quantity: it.qty,

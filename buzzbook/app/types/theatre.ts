@@ -47,11 +47,3 @@ export interface SeatLayout{
   hold_expires_at: string | null;
   _id: string;
 }
-
-export interface Snacks {
-  snackId:string,
-  unit:number,
-  quantity:number,
-  price?:string,
-  name?:string
-}

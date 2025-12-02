@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { useLocation } from "@/app/context/LocationContext"
-import type { Movie,Reviews} from "@/app/types/movie"
+import type { Reviews } from "@/app/types/movie"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -16,24 +16,24 @@ import ReplyThread from "@/components/modals/ReplyThread"
 
 export default function MovieDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const { addToWishlist ,wishlistMovies,addReview,addReply,getReviewReplies} = useLocation();
-const { movieDet, fetchMovieDetails, city, } = useLocation()
+  const { addToWishlist, wishlistMovies, addReview, addReply, getReviewReplies } = useLocation();
+  const { movieDet, fetchMovieDetails, city, } = useLocation()
   // const [movie, setMovie] = useState<Movie | null>(null)
   const movie = movieDet
   const [reviewOpen, setReviewOpen] = useState(false);
   const [activeReply, setActiveReply] = useState<string | null>(null);
 
 
-// useEffect(() => {
-//   if (id && (!movie || movie._id !== id)) {
-//     fetchMovieDetails(id).then((data) => {
-//       if (data) setMovie(data);
-//     });
-//   }
-// }, [id, fetchMovieDetails, movie]);
-useEffect(() => {
-  if (id) fetchMovieDetails(id);
-}, [id]);
+  // useEffect(() => {
+  //   if (id && (!movie || movie._id !== id)) {
+  //     fetchMovieDetails(id).then((data) => {
+  //       if (data) setMovie(data);
+  //     });
+  //   }
+  // }, [id, fetchMovieDetails, movie]);
+  useEffect(() => {
+    if (id) fetchMovieDetails(id);
+  }, [id]);
 
   if (!movie) {
     return (
@@ -62,13 +62,13 @@ useEffect(() => {
     return `${hours}h ${mins}m`
   }
 
-  const calculateAverageRating = (reviews:Reviews[]):number=> {
+  const calculateAverageRating = (reviews: Reviews[]): number => {
     if (!reviews || reviews.length === 0) return 0
-  const avg = reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
-  return parseFloat(avg.toFixed(1)) 
+    const avg = reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
+    return parseFloat(avg.toFixed(1))
   }
 
-  const calculateRatingDistribution = (reviews:Reviews[]) => {
+  const calculateRatingDistribution = (reviews: Reviews[]) => {
     if (!reviews || reviews.length === 0) return { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
 
     const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
@@ -89,24 +89,24 @@ useEffect(() => {
     }
   }
 
-const isInWishlist = wishlistMovies.some(
-  (m) => m._id === movie._id
-);
+  const isInWishlist = wishlistMovies.some(
+    (m) => m._id === movie._id
+  );
 
-const handleShare = () => {
-  const url = window.location.href;
+  const handleShare = () => {
+    const url = window.location.href;
 
-  if (navigator.share) {
-    navigator.share({
-      title: movie.title,
-      text: "Check out this movie!",
-      url,
-    });
-  } else {
-    navigator.clipboard.writeText(url);
-    alert("Link copied to clipboard!");
-  }
-};
+    if (navigator.share) {
+      navigator.share({
+        title: movie.title,
+        text: "Check out this movie!",
+        url,
+      });
+    } else {
+      navigator.clipboard.writeText(url);
+      alert("Link copied to clipboard!");
+    }
+  };
 
 
   return (
@@ -114,9 +114,9 @@ const handleShare = () => {
       {/* Hero Section */}
       <div className="relative h-[60vh] w-full overflow-hidden sm:h-[80vh] lg:h-screen">
         <div className="absolute top-16 sm:top-24 right-10 sm:right-16 z-30">
-  <button
-    onClick={handleShare}
-    className="
+          <button
+            onClick={handleShare}
+            className="
       flex items-center gap-2
       px-4 py-2 rounded-xl
       bg-white/10 border border-white/20 backdrop-blur-xl
@@ -124,11 +124,11 @@ const handleShare = () => {
       shadow-lg hover:bg-white/20 hover:shadow-xl
       transition-all duration-300
     "
-  >
-    <Share2 className="h-5 w-5 text-white" />
-    <span className="text-sm sm:text-base">Share</span>
-  </button>
-</div>
+          >
+            <Share2 className="h-5 w-5 text-white" />
+            <span className="text-sm sm:text-base">Share</span>
+          </button>
+        </div>
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -207,11 +207,11 @@ const handleShare = () => {
 
                 {/* Action Buttons */}
                 <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-                  <Link   href={`/theatres/${city}/${movie.title}`}>
-                  <Button className="transform-gpu rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2.5 text-sm text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-purple-700 hover:to-pink-700 hover:shadow-purple-500/25 sm:text-base">
-                    <Play className="mr-1 h-4 w-4 sm:mr-2" />
-                    Book Tickets
-                  </Button></Link>
+                  <Link href={`/theatres/${city}/${movie.title}`}>
+                    <Button className="transform-gpu rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2.5 text-sm text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-purple-700 hover:to-pink-700 hover:shadow-purple-500/25 sm:text-base">
+                      <Play className="mr-1 h-4 w-4 sm:mr-2" />
+                      Book Tickets
+                    </Button></Link>
                   <div className="flex justify-center gap-2">
                     <Button
                       variant="outline"
@@ -220,16 +220,15 @@ const handleShare = () => {
                       <Users className="mr-1 h-4 w-4 sm:mr-2" />
                       With Friends
                     </Button>
-                   <button
-  onClick={() => addToWishlist(movie._id,movie.theaterId ?? null)}
-  className="p-1 rounded-full border border-white/10 hover:bg-white/10 transition"
->
-  <Heart
-    className={`h-4 w-4 sm:h-5 sm:w-5 ${
-      isInWishlist ? "text-red-500 fill-red-500" : "text-white"
-    }`}
-  />
-</button>
+                    <button
+                      onClick={() => addToWishlist(movie._id, movie.theaterId ?? null)}
+                      className="p-1 rounded-full border border-white/10 hover:bg-white/10 transition"
+                    >
+                      <Heart
+                        className={`h-4 w-4 sm:h-5 sm:w-5 ${isInWishlist ? "text-red-500 fill-red-500" : "text-white"
+                          }`}
+                      />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -302,12 +301,12 @@ const handleShare = () => {
                 </div>
 
                 {/* Action Buttons - Desktop */}
-                <div className="flex flex-wrap gap-4 pt-4">                  <Link   href={`/theatres/${city}/${movie.title}`}>
+                <div className="flex flex-wrap gap-4 pt-4">                  <Link href={`/theatres/${city}/${movie.title}`}>
                   <Button className="transform-gpu rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-3 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-purple-700 hover:to-pink-700 hover:shadow-purple-500/25">
                     <Play className="mr-2 h-5 w-5" />
                     Book Now
                   </Button>
-                  </Link>
+                </Link>
                   <Button
                     variant="outline"
                     className="rounded-xl border-white/20 bg-white/10 px-8 py-3 text-white backdrop-blur-md transition-all duration-300 hover:bg-white/20"
@@ -315,16 +314,15 @@ const handleShare = () => {
                     <Users className="mr-2 h-5 w-5" />
                     Friends
                   </Button>
-                   <button
-  onClick={() => addToWishlist(movie._id,movie.theaterId ?? null)}
-  className="p-1 rounded-full border border-white/10 hover:bg-white/10 transition"
->
-  <Heart
-    className={`h-4 w-4 sm:h-5 sm:w-5 ${
-      isInWishlist ? "text-red-500 fill-red-500" : "text-white"
-    }`}
-  />
-</button>
+                  <button
+                    onClick={() => addToWishlist(movie._id, movie.theaterId ?? null)}
+                    className="p-1 rounded-full border border-white/10 hover:bg-white/10 transition"
+                  >
+                    <Heart
+                      className={`h-4 w-4 sm:h-5 sm:w-5 ${isInWishlist ? "text-red-500 fill-red-500" : "text-white"
+                        }`}
+                    />
+                  </button>
                 </div>
               </div>
             </div>
@@ -441,11 +439,10 @@ const handleShare = () => {
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            className={`h-4 w-4 ${
-                             i < Math.floor(calculateAverageRating(movie.reviews))
+                            className={`h-4 w-4 ${i < Math.floor(calculateAverageRating(movie.reviews))
                                 ? "fill-current text-yellow-400"
                                 : "text-gray-600"
-                            }`}
+                              }`}
                           />
                         ))}
                       </div>
@@ -477,7 +474,7 @@ const handleShare = () => {
 
                 {/* Individual Reviews */}
                 <div className="space-y-4 sm:space-y-6">
-                  {movie.reviews.slice(0, 5).map((review:Reviews, index: number) => (
+                  {movie.reviews.slice(0, 5).map((review: Reviews, index: number) => (
                     <div
                       key={index}
                       className="rounded-xl border border-white/5 bg-slate-800/50 p-4 transition-all duration-300 hover:bg-slate-800/70 sm:p-6"
@@ -498,9 +495,8 @@ const handleShare = () => {
                                 {[...Array(5)].map((_, i) => (
                                   <Star
                                     key={i}
-                                    className={`h-3 w-3 ${
-                                      i < Math.floor(review.rating) ? "fill-current text-yellow-400" : "text-gray-600"
-                                    }`}
+                                    className={`h-3 w-3 ${i < Math.floor(review.rating) ? "fill-current text-yellow-400" : "text-gray-600"
+                                      }`}
                                   />
                                 ))}
                               </div>
@@ -519,21 +515,21 @@ const handleShare = () => {
                           <Heart className="h-3 w-3" />
                           Helpful ({review.helpful_count || 0})
                         </button>
-                       <button
-  className="transition-colors hover:text-white"
-  onClick={() => setActiveReply(review._id)}
->
-  Reply
-</button>
+                        <button
+                          className="transition-colors hover:text-white"
+                          onClick={() => setActiveReply(review._id)}
+                        >
+                          Reply
+                        </button>
                       </div>
                       {activeReply === review._id && (
-  <ReplyThread
-    movieId={movie._id}
-    reviewId={review._id}
-    getReplies={getReviewReplies}
-    postReply={(id, rid, payload) => addReply(id, rid, payload.reply)}
-  />
-)}
+                        <ReplyThread
+                          movieId={movie._id}
+                          reviewId={review._id}
+                          getReplies={getReviewReplies}
+                          postReply={(id, rid, payload) => addReply(id, rid, payload.reply)}
+                        />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -562,13 +558,13 @@ const handleShare = () => {
 
             {/* Write Review Button */}
             <div className="mt-6 text-center sm:mt-8">
-<Button
-  variant="outline"
-  className="rounded-xl border-purple-500/30 bg-purple-500/10 px-6 py-3 text-purple-300 hover:bg-purple-500/20 hover:text-white"
-  onClick={() => setReviewOpen(true)}
->
-  Write a Review
-</Button>
+              <Button
+                variant="outline"
+                className="rounded-xl border-purple-500/30 bg-purple-500/10 px-6 py-3 text-purple-300 hover:bg-purple-500/20 hover:text-white"
+                onClick={() => setReviewOpen(true)}
+              >
+                Write a Review
+              </Button>
             </div>
           </div>
         </div>
@@ -578,11 +574,11 @@ const handleShare = () => {
       <div className="fixed bottom-0 left-0 right-0 z-50 p-3 sm:p-4">
         <div className="mx-auto max-w-sm rounded-2xl border border-white/20 bg-gradient-to-r from-slate-900/95 to-slate-800/95 p-3 shadow-2xl backdrop-blur-xl sm:p-4">
           <div className="flex gap-2 sm:gap-3">
-            <Link   href={`/theatres/${city}/${movie.title}`}>
-            <Button className="transform-gpu flex-1 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 py-2.5 text-sm text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-purple-700 hover:to-pink-700 hover:shadow-purple-500/25 sm:py-3 sm:text-base">
-              <Play className="mr-1 h-4 w-4 sm:mr-2" />
-              Book Now
-            </Button>
+            <Link href={`/theatres/${city}/${movie.title}`}>
+              <Button className="transform-gpu flex-1 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 py-2.5 text-sm text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-purple-700 hover:to-pink-700 hover:shadow-purple-500/25 sm:py-3 sm:text-base">
+                <Play className="mr-1 h-4 w-4 sm:mr-2" />
+                Book Now
+              </Button>
             </Link>
             <Button
               variant="outline"
@@ -595,19 +591,19 @@ const handleShare = () => {
         </div>
       </div>
       <ReviewModal
-  open={reviewOpen}
-  onClose={() => setReviewOpen(false)}
-  onSubmit={(data) => addReview(movie._id, data)}
-/>
+        open={reviewOpen}
+        onClose={() => setReviewOpen(false)}
+        onSubmit={(data) => addReview(movie._id, data)}
+      />
 
-<ReplyModal
-  open={activeReply !== null}
-  onClose={() => setActiveReply(null)}
-  onSubmit={(replyText) => {
-    addReply(movie._id, activeReply!, replyText);
-    setActiveReply(null);
-  }}
-/>
+      <ReplyModal
+        open={activeReply !== null}
+        onClose={() => setActiveReply(null)}
+        onSubmit={(replyText) => {
+          addReply(movie._id, activeReply!, replyText);
+          setActiveReply(null);
+        }}
+      />
 
     </div>
 

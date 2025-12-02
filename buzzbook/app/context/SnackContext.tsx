@@ -2,22 +2,8 @@
 import React, { createContext, useContext, useState } from "react";
 import api from "@/lib/interceptor";
 import { route } from "@/lib/api"
-interface SnackOption {
-  unit: string;
-  price: number;
-  _id: string;
-}
+import {Snack } from "../types/snacks";
 
-interface Snack {
-  _id: string;
-  name: string;
-  snack_img: string[];
-  description: string;
-  available: boolean;
-  category: string;
-  rating: number;
-  quantity_options: SnackOption[];
-}
 
 interface SnackContextType {
   snacks: Snack[];
