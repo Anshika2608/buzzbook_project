@@ -46,5 +46,13 @@ export interface CarouselMovie {
     description?: string;
 }
 export interface Wishlist {
-  _id:string
+  _id:string,
+    title: string;
+  poster_img?: string[];
+  genre?: string[];
+  theaterId?: string | null;
+  name?:string,
+  address?:string,
+  facilities?:[]
+
 }

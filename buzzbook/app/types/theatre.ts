@@ -47,3 +47,10 @@ export interface SeatLayout{
   hold_expires_at: string | null;
   _id: string;
 }
+
+export type Reply = {
+  _id: string;
+  reply: string;
+  created_at?: string;
+  userName?: string;
+};
