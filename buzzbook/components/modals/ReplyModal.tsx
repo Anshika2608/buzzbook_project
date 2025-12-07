@@ -20,7 +20,7 @@ export default function ReplyModal({
   const handleSubmit = async () => {
     if (!reply.trim()) return;
     setLoading(true);
-    await onSubmit({ reply });
+    await onSubmit( reply );
     setLoading(false);
     setReply("");
     onClose();

@@ -527,14 +527,14 @@ export default function MovieDetailPage() {
                           movieId={movie._id}
                           reviewId={review._id}
                           getReplies={getReviewReplies}
-                          postReply={(id, rid, payload) => addReply(id, rid, payload.reply)}
+                         postReply={(id, rid, reply) => addReply(id, rid, reply)}
                         />
                       )}
                     </div>
                   ))}
                 </div>
 
-                {/* Show More Reviews Button */}
+
                 {movie.reviews.length > 5 && (
                   <div className="mt-6 text-center sm:mt-8">
                     <Button
@@ -599,8 +599,8 @@ export default function MovieDetailPage() {
       <ReplyModal
         open={activeReply !== null}
         onClose={() => setActiveReply(null)}
-        onSubmit={(replyText) => {
-          addReply(movie._id, activeReply!, replyText);
+        onSubmit={async(replyText) => {
+          await addReply(movie._id, activeReply!, replyText);
           setActiveReply(null);
         }}
       />
