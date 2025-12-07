@@ -52,5 +52,5 @@ export type Reply = {
   _id: string;
   reply: string;
   created_at?: string;
-  userName?: string;
+  user_name?: string;
 };
