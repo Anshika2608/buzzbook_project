@@ -1,11 +1,12 @@
 "use client";
-
-import React from "react";
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+import React, { Suspense } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function SuccessPage() {
+function SuccessInnerPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -16,8 +17,9 @@ export default function SuccessPage() {
   const audi_number = searchParams.get("audi_number");
 
   return (
+
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-black via-purple-900/20 to-black text-white px-6">
-      
+
       {/* Success Icon */}
       <CheckCircle2 className="text-green-400 w-28 h-28 mb-4 animate-bounce" />
 
@@ -54,3 +56,13 @@ export default function SuccessPage() {
     </div>
   );
 }
+
+export default function successPage() {
+  return (
+    <Suspense fallback={<div className="p-10 text-white text-center">Loading...</div>}>
+      <SuccessInnerPage />
+    </Suspense>
+  )
+}
+
+

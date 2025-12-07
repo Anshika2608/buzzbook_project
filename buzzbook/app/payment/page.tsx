@@ -1,6 +1,7 @@
 "use client";
-
-import React, { useEffect, useState } from "react";
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import api from "@/lib/interceptor";
 import { route } from "@/lib/api";
@@ -12,29 +13,29 @@ interface SnackItem {
     price: number;
 }
 interface RazorpayResponse {
-  razorpay_order_id: string;
-  razorpay_payment_id: string;
-  razorpay_signature: string;
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
 }
 interface RazorpayOptions {
-  key: string;
-  amount: number;
-  currency: string;
-  name: string;
-  description: string;
-  order_id: string;
-  handler: (res: RazorpayResponse) => Promise<void>;
-  theme: { color: string };
+    key: string;
+    amount: number;
+    currency: string;
+    name: string;
+    description: string;
+    order_id: string;
+    handler: (res: RazorpayResponse) => Promise<void>;
+    theme: { color: string };
 }
 interface RazorpayInstance {
-  open: () => void;
+    open: () => void;
 }
 declare global {
-  interface Window {
-    Razorpay: new (options: RazorpayOptions) =>RazorpayInstance;
-  }
+    interface Window {
+        Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
+    }
 }
-export default function PaymentPage() {
+function PaymentPageInner() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -132,7 +133,7 @@ export default function PaymentPage() {
                 return;
             }
 
-            const options:RazorpayOptions= {
+            const options: RazorpayOptions = {
                 key,
                 amount: orderAmount,
                 currency: "INR",
@@ -140,7 +141,7 @@ export default function PaymentPage() {
                 description: "Movie + Snacks Payment",
                 order_id,
 
-                handler: async function (res:RazorpayResponse) {
+                handler: async function (res: RazorpayResponse) {
                     const verifyRes = await api.post(`${route.verifyPayment}`, {
                         razorpay_order_id: res.razorpay_order_id,
                         razorpay_payment_id: res.razorpay_payment_id,
@@ -155,7 +156,7 @@ export default function PaymentPage() {
                             seats,
                             paymentId: res.razorpay_payment_id,
                             seat_price_total: ticketPrice,
-                            snacks: snacks.map((s:SnackItem) => ({
+                            snacks: snacks.map((s: SnackItem) => ({
                                 snackId: s.id,
                                 unit: s.unit,
                                 quantity: s.qty,
@@ -191,72 +192,80 @@ export default function PaymentPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-black via-purple-950/40 to-black text-white p-6 ">
-            <div className="max-w-6xl mx-auto mt-24">
 
-                <h1 className="text-4xl font-bold text-center mb-8">Order Summary</h1>
+            <div className="min-h-screen bg-gradient-to-b from-black via-purple-950/40 to-black text-white p-6 ">
+                <div className="max-w-6xl mx-auto mt-24">
 
-                {/* MOVIE DETAILS */}
-                <div className="text-lg mb-6">
-                    <p className="font-bold text-purple-400 text-xl mb-2">🎬 Movie Details</p>
+                    <h1 className="text-4xl font-bold text-center mb-8">Order Summary</h1>
 
-                    <div className="space-y-3 text-purple-200">
-                        <p><span className="text-purple-400 font-medium">Movie:</span> {movie_title}</p>
-                        <p><span className="text-purple-400 font-medium">Theater:</span> {theaterName}</p>
-                        <p><span className="text-purple-400 font-medium">Date:</span> {show_date}</p>
-                        <p><span className="text-purple-400 font-medium">Showtime:</span> {showtime}</p>
-                        <p><span className="text-purple-400 font-medium">Seats:</span> {seats.join(", ")}</p>
+                    {/* MOVIE DETAILS */}
+                    <div className="text-lg mb-6">
+                        <p className="font-bold text-purple-400 text-xl mb-2">🎬 Movie Details</p>
+
+                        <div className="space-y-3 text-purple-200">
+                            <p><span className="text-purple-400 font-medium">Movie:</span> {movie_title}</p>
+                            <p><span className="text-purple-400 font-medium">Theater:</span> {theaterName}</p>
+                            <p><span className="text-purple-400 font-medium">Date:</span> {show_date}</p>
+                            <p><span className="text-purple-400 font-medium">Showtime:</span> {showtime}</p>
+                            <p><span className="text-purple-400 font-medium">Seats:</span> {seats.join(", ")}</p>
+                        </div>
+
+                        <div className="mt-3 flex justify-between text-xl font-bold text-purple-300">
+                            <span>Ticket Price</span>
+                            <span>₹{ticketPrice}</span>
+                        </div>
                     </div>
 
-                    <div className="mt-3 flex justify-between text-xl font-bold text-purple-300">
-                        <span>Ticket Price</span>
-                        <span>₹{ticketPrice}</span>
+                    <hr className="border-purple-800 my-6" />
+
+                    {/* SNACKS SECTION */}
+                    <div className="text-lg mb-6">
+                        <p className="font-bold text-purple-400 text-xl mb-2">🍿 Snacks</p>
+
+                        {snacks.length === 0 ? (
+                            <p className="text-purple-400">No snacks selected</p>
+                        ) : (
+                            snacks.map((item: SnackItem, i: number) => (
+                                <div key={i} className="flex justify-between py-2 text-purple-200">
+                                    <span>{item.unit} × {item.qty}</span>
+                                    <span>₹{item.qty * item.price}</span>
+                                </div>
+                            ))
+                        )}
+
+                        <div className="mt-3 flex justify-between text-xl font-bold text-purple-300">
+                            <span>Snacks Total</span>
+                            <span>₹{snackTotal}</span>
+                        </div>
                     </div>
-                </div>
 
-                <hr className="border-purple-800 my-6" />
+                    <hr className="border-purple-800 my-6" />
 
-                {/* SNACKS SECTION */}
-                <div className="text-lg mb-6">
-                    <p className="font-bold text-purple-400 text-xl mb-2">🍿 Snacks</p>
-
-                    {snacks.length === 0 ? (
-                        <p className="text-purple-400">No snacks selected</p>
-                    ) : (
-                        snacks.map((item:SnackItem, i: number) => (
-                            <div key={i} className="flex justify-between py-2 text-purple-200">
-                                <span>{item.unit} × {item.qty}</span>
-                                <span>₹{item.qty * item.price}</span>
-                            </div>
-                        ))
-                    )}
-
-                    <div className="mt-3 flex justify-between text-xl font-bold text-purple-300">
-                        <span>Snacks Total</span>
-                        <span>₹{snackTotal}</span>
+                    {/* UPDATED TOTAL */}
+                    <div className="flex justify-between items-center text-3xl font-semibold text-white mb-10">
+                        <span>Total Amount</span>
+                        <span className="text-green-400">₹{updatedTotal}</span>
                     </div>
+
+                    {/* PAY BUTTON */}
+                    <div className="w-full flex justify-center">
+                        <Button
+                            className="w-full max-w-md text-2xl bg-purple-600 hover:bg-purple-700 rounded-xl shadow-lg shadow-purple-700/50"
+                            onClick={handlePayment}
+                            disabled={loading}
+                        >
+                            {loading ? "Processing..." : `Pay ₹${updatedTotal}`}
+                        </Button>
+                    </div>
+
                 </div>
-
-                <hr className="border-purple-800 my-6" />
-
-                {/* UPDATED TOTAL */}
-                <div className="flex justify-between items-center text-3xl font-semibold text-white mb-10">
-                    <span>Total Amount</span>
-                    <span className="text-green-400">₹{updatedTotal}</span>
-                </div>
-
-                {/* PAY BUTTON */}
-                <div className="w-full flex justify-center">
-                    <Button
-                        className="w-full max-w-md text-2xl bg-purple-600 hover:bg-purple-700 rounded-xl shadow-lg shadow-purple-700/50"
-                        onClick={handlePayment}
-                        disabled={loading}
-                    >
-                        {loading ? "Processing..." : `Pay ₹${updatedTotal}`}
-                    </Button>
-                </div>
-
             </div>
-        </div>
     );
+}
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={<div className="p-10 text-white text-center">Loading...</div>}>
+      <PaymentPageInner />
+    </Suspense>
+  );
 }

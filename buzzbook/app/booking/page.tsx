@@ -1,6 +1,5 @@
 "use client";
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useBooking } from "@/app/context/BookingContext";
 import { useLocation } from "@/app/context/LocationContext";
@@ -16,7 +15,7 @@ interface SelectedSeat {
   price?: number;
 }
 
-export default function SeatBookingPage() {
+function SeatBookingInnerPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { seatLayout, isLoading, fetchSeatLayout, seatPrices, holdSeats, releaseHold, updateSeats } = useBooking();
@@ -166,6 +165,7 @@ export default function SeatBookingPage() {
 
   if (!theaterId || !movieTitle || !showtime || !showDate) {
     return (
+
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-black via-purple-900 to-black">
         <div className="text-center text-white">
           <h2 className="mb-4 text-2xl font-bold">Invalid booking details</h2>
@@ -339,4 +339,11 @@ export default function SeatBookingPage() {
 
     </div>
   );
+}
+export default function SeatBookingPage() {
+  return(
+  <Suspense fallback={<div className="p-10 text-white text-center">Loading...</div>}>
+    <SeatBookingInnerPage />
+  </Suspense>
+  )
 }
