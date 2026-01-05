@@ -17,34 +17,24 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 
 export default function MovieDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const { addToWishlist, wishlistMovies, addReview, addReply, getReviewReplies,markReviewHelpful } = useLocation();
+  const { addToWishlist, wishlistMovies, addReview, addReply, getReviewReplies, markReviewHelpful } = useLocation();
   const { movieDet, fetchMovieDetails, city, } = useLocation()
-  // const [movie, setMovie] = useState<Movie | null>(null)
   const movie = movieDet
   const [reviewOpen, setReviewOpen] = useState(false);
   const [activeReply, setActiveReply] = useState<string | null>(null);
 
 
-  // useEffect(() => {
-  //   if (id && (!movie || movie._id !== id)) {
-  //     fetchMovieDetails(id).then((data) => {
-  //       if (data) setMovie(data);
-  //     });
-  //   }
-  // }, [id, fetchMovieDetails, movie]);
+ 
   useEffect(() => {
     if (id) fetchMovieDetails(id);
   }, [id]);
 
   if (!movie) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950">
-        <div className="relative">
-          <div className="h-16 w-16 animate-spin rounded-full border-4 border-purple-500/30 border-t-purple-500"></div>
-          <div className="absolute inset-0 h-16 w-16 animate-[spin_1.5s_linear_infinite] rounded-full border-4 border-t-pink-500 border-transparent"></div>
-        </div>
+      <div className="w-full h-screen bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-purple-500" />
       </div>
-    )
+    );
   }
 
   const formatDate = (dateString: string) => {
@@ -441,8 +431,8 @@ export default function MovieDetailPage() {
                           <Star
                             key={i}
                             className={`h-4 w-4 ${i < Math.floor(calculateAverageRating(movie.reviews))
-                                ? "fill-current text-yellow-400"
-                                : "text-gray-600"
+                              ? "fill-current text-yellow-400"
+                              : "text-gray-600"
                               }`}
                           />
                         ))}
@@ -475,15 +465,15 @@ export default function MovieDetailPage() {
 
                 {/* Individual Reviews */}
                 <div className="space-y-4 sm:space-y-6">
-                    <div className="mt-6 text-right sm:mt-8">
-              <Button
-                variant="outline"
-                className="rounded-xl border-purple-500/30 bg-purple-500/10 px-6 py-3 text-purple-300 hover:bg-purple-500/20 hover:text-white"
-                onClick={() => setReviewOpen(true)}
-              >
-                Write a Review
-              </Button>
-            </div>
+                  <div className="mt-6 text-right sm:mt-8">
+                    <Button
+                      variant="outline"
+                      className="rounded-xl border-purple-500/30 bg-purple-500/10 px-6 py-3 text-purple-300 hover:bg-purple-500/20 hover:text-white"
+                      onClick={() => setReviewOpen(true)}
+                    >
+                      Write a Review
+                    </Button>
+                  </div>
                   {movie.reviews.slice(0, 5).map((review: Reviews, index: number) => (
                     <div
                       key={index}
@@ -529,19 +519,19 @@ export default function MovieDetailPage() {
   }`} />   */}
                           Helpful ({review.helpful_count || 0})
                         </button>
-                       <button
-  className="flex items-center gap-1 transition-colors hover:text-white"
-  onClick={() =>
-    setActiveReply(activeReply === review._id ? null : review._id)
-  }
->
-  Reply
-  {activeReply === review._id ? (
-    <ChevronUp className="h-4 w-4" />
-  ) : (
-    <ChevronDown className="h-4 w-4" />
-  )}
-</button>
+                        <button
+                          className="flex items-center gap-1 transition-colors hover:text-white"
+                          onClick={() =>
+                            setActiveReply(activeReply === review._id ? null : review._id)
+                          }
+                        >
+                          Reply
+                          {activeReply === review._id ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </button>
 
                       </div>
                       {activeReply === review._id && (
@@ -549,7 +539,7 @@ export default function MovieDetailPage() {
                           movieId={movie._id}
                           reviewId={review._id}
                           getReplies={getReviewReplies}
-                         postReply={(id, rid, reply) => addReply(id, rid, reply)}
+                          postReply={(id, rid, reply) => addReply(id, rid, reply)}
                         />
                       )}
                     </div>
@@ -579,7 +569,7 @@ export default function MovieDetailPage() {
             )}
 
             {/* Write Review Button */}
-          
+
           </div>
         </div>
       </div>

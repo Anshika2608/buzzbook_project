@@ -166,6 +166,7 @@ export const BookingProvider = ({ children }: { children: React.ReactNode }) => 
 
       const newLayout: Seat[] = res.data.seating_layout.flat();
       setSeatLayout(newLayout);
+
       setSeatPrices(res.data.prices);
     } finally {
       setIsLoading(false);

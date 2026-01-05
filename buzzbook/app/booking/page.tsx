@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useBooking } from "@/app/context/BookingContext";
 import { useLocation } from "@/app/context/LocationContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Calendar, Clock, User, CreditCard } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
@@ -40,6 +40,7 @@ function SeatBookingInnerPage() {
 
 
   useEffect(() => {
+    if (loading) return;
     if (!user) {
       router.replace(
         `/login?redirect=${encodeURIComponent(
@@ -47,16 +48,18 @@ function SeatBookingInnerPage() {
         )}`
       );
     }
-  }, [user]);
+  }, [user, loading]);
 
   // Fetch seats initially
   useEffect(() => {
-    if (!loading && user && theaterId && movieTitle && showtime && showDate) {
+    if (loading) return;
+    if (!user) return;
+    if (theaterId && movieTitle && showtime && showDate) {
       fetchSeatLayout(theaterId, movieTitle, showtime, showDate);
     }
-  }, [theaterId, movieTitle, showtime, showDate]);
+  }, [loading, user, theaterId, movieTitle, showtime, showDate]);
   useEffect(() => {
-    // 1️⃣ REMOVE seats that backend has now booked
+    // REMOVE seats that backend has now booked
     setSelectedSeats((prev) =>
       prev.filter(
         (seat) =>
@@ -120,12 +123,20 @@ function SeatBookingInnerPage() {
     ]);
   };
 
-
   // Price calculation
   const getSeatPrice = (type: string): number => {
-    const key = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
-    return seatPrices?.[key] ?? 0;
+    if (!seatPrices) return 0;
+
+    const normalizedType = type.toUpperCase();
+
+    return (
+      seatPrices[normalizedType] ??
+      seatPrices[type] ??
+      seatPrices[type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()] ??
+      0
+    );
   };
+
 
   // Group seats row-wise
   const groupSeatsByRow = () => {
@@ -193,6 +204,13 @@ function SeatBookingInnerPage() {
       </div>
     );
   }
+  if (loading) {
+    return (
+      <div className="w-full h-screen bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-purple-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-purple-900/30 to-black font-sans text-white">
@@ -233,13 +251,11 @@ function SeatBookingInnerPage() {
       <div className="mx-auto max-w-screen-xl px-4 py-6 sm:px-6 lg:px-8 space-y-8">
 
         {isLoading ? (
-          <Card className="rounded-2xl border-purple-700/50 bg-purple-900/60 backdrop-blur-xl">
-            <CardContent className="p-12 text-center">
-              <div className="mx-auto mb-6 h-12 w-12 animate-spin rounded-full border-4 border-purple-500 border-t-transparent"></div>
-              <h3 className="text-xl font-bold text-white">Loading Seats...</h3>
-              <p className="mt-2 text-purple-300">Please wait while we load the seating layout</p>
-            </CardContent>
-          </Card>
+          <div className="w-full h-screen bg-gray-900 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-purple-500">
+            </div>
+          </div>
+
         ) : (
           <>
             {/* Seating Layout */}

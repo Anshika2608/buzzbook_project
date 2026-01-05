@@ -11,7 +11,6 @@ interface FailedRequest {
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API,
   withCredentials: true, // send cookies (access + refresh)
-  timeout: 30000,
 });
 
 

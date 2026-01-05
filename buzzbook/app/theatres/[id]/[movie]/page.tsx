@@ -42,6 +42,7 @@ export default function TheatrePage() {
   } = useLocation();
   const router = useRouter();
   const { releaseHold } = useBooking();
+  const [loadingTheatres, setLoadingTheatres] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedLanguage, setSelectedLanguage] = useState<string>("all");
   const [selectedFormat, setSelectedFormat] = useState<string>("all");
@@ -50,11 +51,6 @@ export default function TheatrePage() {
   const [mapOpen, setMapOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const movieName = movieDet?.title ?? "";
-  console.log(theatres)
-  // const isTheaterInWishlist = wishlistTheater.some(
-  //   (t) => t._id === theatres._id
-  // );
-
   const generateDates = () => {
     return Array.from({ length: 7 }).map((_, i) => {
       const date = new Date();
@@ -72,7 +68,6 @@ export default function TheatrePage() {
 
   useEffect(() => {
     if (dates.length > 0) setSelectedDate(dates[0].date);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getAmenityIcon = (amenity: string) => {
@@ -91,27 +86,35 @@ export default function TheatrePage() {
   };
 
   useEffect(() => {
-    if (city && movieName) {
-      // Always fetch price ranges
-      fetchPriceRanges(movieName, city);
+    if (!city || !movieName) return;
 
-      if (times !== "all") {
-        // Fetch theatres filtered by selected time
-        fetchUniqueShowTime(city, times, movieName);
-      } else if (priceRange !== "all") {
-        // Fetch theatres filtered by price
-        fetchFilteredTheatresPrice(movieName, city, priceRange);
-      } else {
-        // Fetch all theatres
-        fetchTheatres(movieName, city);
+    const loadTheatres = async () => {
+      setLoadingTheatres(true);
+
+      try {
+        await fetchPriceRanges(movieName, city);
+
+        if (times !== "all") {
+          await fetchUniqueShowTime(city, times, movieName);
+        } else if (priceRange !== "all") {
+          await fetchFilteredTheatresPrice(movieName, city, priceRange);
+        } else {
+          await fetchTheatres(movieName, city);
+        }
+      } finally {
+        setLoadingTheatres(false);
       }
-    }
+    };
+
+    loadTheatres();
   }, [movieName, city, priceRange, times]);
+
+
   useEffect(() => {
     const tempId = localStorage.getItem("tempBookingId");
- 
+
     if (tempId) {
-      releaseHold(tempId); 
+      releaseHold(tempId);
       localStorage.removeItem("tempBookingId");
     }
   }, []);
@@ -130,6 +133,13 @@ export default function TheatrePage() {
     );
   }
 
+  if (loadingTheatres) {
+    return (
+      <div className="w-full h-screen bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-purple-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 font-sans text-white">
