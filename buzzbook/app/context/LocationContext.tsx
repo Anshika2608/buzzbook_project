@@ -33,7 +33,7 @@ type LocationContextType = {
 ) => Promise<void>;
 getReviewReplies: (movieId: string, reviewId: string) => Promise<Reply[]>;
 addReply: (movieId: string, reviewId: string, reply: string) => Promise<void>;
-
+markReviewHelpful: (movieId: string, reviewId: string) => Promise<void>;
 };
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
@@ -283,12 +283,25 @@ const addReply = async (movieId: string, reviewId: string, reply: string) => {
   try {
     const res = await api.post(
       `${route.review}/${movieId}/reviews/${reviewId}/replies`,
-      reply
+      {reply}
     );
-
-    // Optional: Refresh movie details so UI updates automatically
     await fetchMovieDetails(movieId);
     await getReviewReplies(movieId,reviewId)
+    return res.data;
+  } catch (err) {
+    const error=err as AxiosError
+    console.error("❌ Error adding reply", error.response?.data || error.message);
+    throw err;
+  }
+};
+
+const markReviewHelpful = async (movieId: string, reviewId: string) => {
+  try {
+    const res = await api.post(
+      `${route.review}/${movieId}/reviews/${reviewId}/helpful`
+    );
+    await fetchMovieDetails(movieId);
+
     return res.data;
   } catch (err) {
     const error=err as AxiosError
@@ -325,7 +338,8 @@ const addReply = async (movieId: string, reviewId: string, reply: string) => {
         wishlistTheater,
         addReview,
         getReviewReplies,
-        addReply
+        addReply,
+        markReviewHelpful
       }}
     >
       {children}

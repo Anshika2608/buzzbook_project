@@ -4,13 +4,7 @@ import React, { useEffect, useState } from "react";
 import { format } from "timeago.js";
 import { MessageCircle } from "lucide-react";
 import ReplyModal from "@/components/modals/ReplyModal";
-
-type Reply = {
-  _id: string;
-  reply: string;
-  created_at?: string;
-  userName?: string;
-};
+import { Reply } from "@/app/types/theatre";
 
 export default function ReplyThread({
   movieId,
@@ -39,7 +33,7 @@ export default function ReplyThread({
   }, [movieId, reviewId]);
 
   const handleSubmitReply = async (reply: string) => {
-    await postReply(movieId, reviewId, reply); // 👈 passes only string
+    await postReply(movieId, reviewId, reply);
     await loadReplies();
   };
 
@@ -67,7 +61,7 @@ export default function ReplyThread({
 
             <div className="flex-1">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-white">{rep.userName || "User"}</span>
+                <span className="text-sm font-semibold text-white">{rep.user_name || "User"}</span>
                 <span className="text-xs text-gray-400">{rep.created_at ? format(rep.created_at) : ""}</span>
               </div>
               <div className="text-sm text-gray-300 mt-1">{rep.reply}</div>

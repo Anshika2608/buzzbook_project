@@ -11,12 +11,13 @@ import Link from "next/link"
 import AvatarImage from "@/components/fallback"
 import { Share2 } from "lucide-react"
 import ReviewModal from "@/components/modals/ReviewModal"
-import ReplyModal from "@/components/modals/ReplyModal"
+// import ReplyModal from "@/components/modals/ReplyModal"
 import ReplyThread from "@/components/modals/ReplyThread"
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 export default function MovieDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const { addToWishlist, wishlistMovies, addReview, addReply, getReviewReplies } = useLocation();
+  const { addToWishlist, wishlistMovies, addReview, addReply, getReviewReplies,markReviewHelpful } = useLocation();
   const { movieDet, fetchMovieDetails, city, } = useLocation()
   // const [movie, setMovie] = useState<Movie | null>(null)
   const movie = movieDet
@@ -474,6 +475,15 @@ export default function MovieDetailPage() {
 
                 {/* Individual Reviews */}
                 <div className="space-y-4 sm:space-y-6">
+                    <div className="mt-6 text-right sm:mt-8">
+              <Button
+                variant="outline"
+                className="rounded-xl border-purple-500/30 bg-purple-500/10 px-6 py-3 text-purple-300 hover:bg-purple-500/20 hover:text-white"
+                onClick={() => setReviewOpen(true)}
+              >
+                Write a Review
+              </Button>
+            </div>
                   {movie.reviews.slice(0, 5).map((review: Reviews, index: number) => (
                     <div
                       key={index}
@@ -511,16 +521,28 @@ export default function MovieDetailPage() {
                         {review.review || "No review provided"}
                       </p>
                       <div className="flex items-center gap-4 text-xs text-gray-400">
-                        <button className="flex items-center gap-1 transition-colors hover:text-white">
-                          <Heart className="h-3 w-3" />
+                        <button className="flex items-center gap-1 transition-colors hover:text-white
+                        "
+                          onClick={() => markReviewHelpful(movie._id, review._id)}>
+                          {/* <Heart className={`h-3 w-3 ${
+    review.helpful_users?.includes(user?._id) ? "text-red-500 fill-red-500" : ""
+  }`} />   */}
                           Helpful ({review.helpful_count || 0})
                         </button>
-                        <button
-                          className="transition-colors hover:text-white"
-                          onClick={() => setActiveReply(review._id)}
-                        >
-                          Reply
-                        </button>
+                       <button
+  className="flex items-center gap-1 transition-colors hover:text-white"
+  onClick={() =>
+    setActiveReply(activeReply === review._id ? null : review._id)
+  }
+>
+  Reply
+  {activeReply === review._id ? (
+    <ChevronUp className="h-4 w-4" />
+  ) : (
+    <ChevronDown className="h-4 w-4" />
+  )}
+</button>
+
                       </div>
                       {activeReply === review._id && (
                         <ReplyThread
@@ -557,15 +579,7 @@ export default function MovieDetailPage() {
             )}
 
             {/* Write Review Button */}
-            <div className="mt-6 text-center sm:mt-8">
-              <Button
-                variant="outline"
-                className="rounded-xl border-purple-500/30 bg-purple-500/10 px-6 py-3 text-purple-300 hover:bg-purple-500/20 hover:text-white"
-                onClick={() => setReviewOpen(true)}
-              >
-                Write a Review
-              </Button>
-            </div>
+          
           </div>
         </div>
       </div>
@@ -596,14 +610,14 @@ export default function MovieDetailPage() {
         onSubmit={(data) => addReview(movie._id, data)}
       />
 
-      <ReplyModal
+      {/* <ReplyModal
         open={activeReply !== null}
         onClose={() => setActiveReply(null)}
         onSubmit={async(replyText) => {
           await addReply(movie._id, activeReply!, replyText);
           setActiveReply(null);
         }}
-      />
+      /> */}
 
     </div>
 
