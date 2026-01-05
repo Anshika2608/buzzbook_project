@@ -1,11 +1,11 @@
 "use server";
 
-import { SignupSchema, SignupFormData } from "@/lib/validation/SignUpschema";
+import { SignupServerSchema,SignupServerData, SignupFormData } from "@/lib/validation/SignUpschema";
 import { route } from "@/lib/api";
 import api from "@/lib/interceptor"
 
-export default async function register(formData: SignupFormData) {
-  const validationResult = SignupSchema.safeParse(formData);
+export default async function register(formData: SignupServerData) {
+  const validationResult = SignupServerSchema.safeParse(formData);
 
   if (!validationResult.success) {
     const fieldErrors: Record<string, string> = {};
@@ -27,7 +27,6 @@ export default async function register(formData: SignupFormData) {
     const res = await api.post(
       route.register,
       { name, email, password, cpassword, recaptchaToken },
-      { withCredentials: true }
     );
 
     const { data, status } = res;
@@ -43,24 +42,8 @@ export default async function register(formData: SignupFormData) {
       };
     }
 
-    // ✅ Auto login after successful registration
-    const loginRes = await api.post(
-      route.login,
-      { email, password, recaptchaToken },
-      { withCredentials: true }
-    );
-
-    const { accessToken, user } = loginRes.data;
-
-    // ✅ store access token
-    if (accessToken) {
-      localStorage.setItem("accessToken", accessToken);
-    }
-
     return {
       success: true,
-      user,
-      accessToken,
       message: "User registered & logged in successfully ✅",
     };
   } catch (error: any) {

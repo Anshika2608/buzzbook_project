@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Calendar, Clock, User, CreditCard } from "lucide-react";
+import { useAuth } from "@/app/context/AuthContext";
 
 
 interface SelectedSeat {
@@ -20,6 +21,7 @@ function SeatBookingInnerPage() {
   const searchParams = useSearchParams();
   const { seatLayout, isLoading, fetchSeatLayout, seatPrices, holdSeats, releaseHold, updateSeats } = useBooking();
   const { city } = useLocation();
+  const { user, loading } = useAuth();
   const theaterId = searchParams.get("theater_id");
   const theatreName = searchParams.get("theatreName");
   const movieTitle = searchParams.get("movie_title");
@@ -35,13 +37,24 @@ function SeatBookingInnerPage() {
     is_held: boolean;
     selected_by_me?: boolean;
   }
+
+
+  useEffect(() => {
+    if (!user) {
+      router.replace(
+        `/login?redirect=${encodeURIComponent(
+          window.location.pathname + window.location.search
+        )}`
+      );
+    }
+  }, [user]);
+
   // Fetch seats initially
   useEffect(() => {
-    if (theaterId && movieTitle && showtime && showDate) {
+    if (!loading && user && theaterId && movieTitle && showtime && showDate) {
       fetchSeatLayout(theaterId, movieTitle, showtime, showDate);
     }
   }, [theaterId, movieTitle, showtime, showDate]);
-
   useEffect(() => {
     // 1️⃣ REMOVE seats that backend has now booked
     setSelectedSeats((prev) =>
@@ -341,9 +354,9 @@ function SeatBookingInnerPage() {
   );
 }
 export default function SeatBookingPage() {
-  return(
-  <Suspense fallback={<div className="p-10 text-white text-center">Loading...</div>}>
-    <SeatBookingInnerPage />
-  </Suspense>
+  return (
+    <Suspense fallback={<div className="p-10 text-white text-center">Loading...</div>}>
+      <SeatBookingInnerPage />
+    </Suspense>
   )
 }

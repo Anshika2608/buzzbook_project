@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const refreshUser = async () => {
+    console.log("called from signup")
     try {
       const res = await api.get(route.validUser, {
         withCredentials: true,

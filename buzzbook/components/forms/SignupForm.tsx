@@ -1,11 +1,17 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import Link from "next/link";
+import { route } from "@/lib/api"
+import api from "@/lib/interceptor"
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/context/AuthContext";
+import axios from "axios";
+
 import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import {
   Form,
@@ -18,16 +24,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SignupSchema, SignupFormData } from "@/lib/validation/SignUpschema";
-import register from "@/actions/signup";
 
 const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!;
 
 export default function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
+  const { refreshUser } = useAuth();
   const recaptchaRef = useRef<ReCAPTCHA>(null);
-
+  const router = useRouter();
   const form = useForm<SignupFormData>({
     resolver: zodResolver(SignupSchema),
     defaultValues: {
@@ -35,50 +40,48 @@ export default function SignupForm() {
       email: "",
       password: "",
       cpassword: "",
-      recaptchaToken: "",
     },
   });
 
-  useEffect(() => {
-    form.register("recaptchaToken");
-  }, [form]);
+
 
   const handleRecaptchaAndSubmit = async () => {
-    const recaptchaValue = await recaptchaRef.current?.executeAsync();
-    console.log("Recaptcha key:", siteKey);
-   console.log("Recaptcha ref:", recaptchaRef.current);
-   const v = await recaptchaRef.current?.executeAsync();
-   console.log("Recaptcha token:", v);
-
-
-    if (!recaptchaValue) {
+    const recaptchaToken = await recaptchaRef.current?.executeAsync();
+    if (!recaptchaToken) {
       toast.error("reCAPTCHA failed, please try again");
       return;
     }
-
-    form.setValue("recaptchaToken", recaptchaValue);
     recaptchaRef.current?.reset();
-
     form.handleSubmit(async (data) => {
 
-      const formData = new FormData();
-      for (const key in data) {
-        formData.append(key, data[key as keyof SignupFormData]);
-      }
-      formData.set("recaptchaToken", recaptchaValue || "");
-      const res = await register(data);
-      if (res.success) {
-        toast.success("🎉 Account created!");
-        form.reset();
-      } else if (res.fieldErrors) {
-        Object.entries(res.fieldErrors).forEach(([field, message]) =>
-          form.setError(field as keyof SignupFormData, { message })
+      try {
+        const payload = {
+          ...data,
+          recaptchaToken,
+        };
+        await api.post(route.register, payload, { withCredentials: true }
         );
-      } else {
-        toast.error(res.error?.message || "Something went wrong");
+
+        toast.success("🎉 Account created!");
+        await refreshUser();
+        form.reset();
+        router.push("/")
+      } catch (error: unknown) {
+        if (axios.isAxiosError(error)) {
+          toast.error(
+            (error.response?.data as { message?: string })?.message ||
+            "Signup failed"
+          );
+        } else if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error("Unexpected error occurred");
+        }
       }
+
     })();
   };
+
 
   return (
     <>
@@ -88,14 +91,14 @@ export default function SignupForm() {
             e.preventDefault();
             handleRecaptchaAndSubmit();
           }}
-        className="flex flex-col items-center justify-center space-y-3 mx-auto py-6  rounded-lg w-2xs">
+          className="flex flex-col items-center justify-center space-y-3 mx-auto py-6  rounded-lg w-2xs">
           <div className="">
-          <img
-            src="/LogoF.png"
-            alt="Logo"
-            className="h-20 min-h-[5rem] w-auto object-contain "
-          />
-        </div>
+            <img
+              src="/LogoF.png"
+              alt="Logo"
+              className="h-20 min-h-[5rem] w-auto object-contain "
+            />
+          </div>
           <h2 className="text-white text-xl font-bold text-center">Sign up</h2>
           <FormField
             control={form.control}

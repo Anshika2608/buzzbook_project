@@ -1,3 +1,4 @@
+import { useState } from "react"
 import type { Movie } from "@/app/types/movie"
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -8,17 +9,27 @@ import { useLocation } from "@/app/context/LocationContext"
 import { AspectRatio } from "../ui/aspect-ratio"
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { Heart } from "lucide-react"
-
+import { useAuth } from "@/app/context/AuthContext"
+import LoginRequiredModal from "../modals/LoginRequiredModal"
 interface HomeMovieCardProps {
   movie: Movie
 }
 
 export default function HomeMovieCard({ movie }: HomeMovieCardProps) {
-  const { city, addToWishlist,wishlistMovies } = useLocation()
-const isInWishlist = wishlistMovies.some(
-  (m) => m._id === movie._id
-);
+  const { city, addToWishlist, wishlistMovies } = useLocation()
+  const { user } = useAuth();
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const isInWishlist = wishlistMovies.some(
+    (m) => m._id === movie._id
+  );
+  const handleWishlistClick = () => {
+    if (!user) {
+      setLoginModalOpen(true);
+      return;
+    }
 
+    addToWishlist(movie._id, movie.theaterId ?? null);
+  };
   const getDisplayLanguages = (languages: string[]) => {
     if (languages.length <= 2) return { display: languages, hidden: [] }
     return {
@@ -78,24 +89,15 @@ const isInWishlist = wishlistMovies.some(
           <h3 className="flex-1 line-clamp-2 text-base font-bold leading-tight text-white transition-colors duration-300 group-hover:text-blue-100 sm:text-lg mb-2">
             {movie.title}
           </h3>
-          {/* <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleWishlist}
-            className={`h-10 w-10 rounded-full border border-white/20 backdrop-blur-md transition-all duration-300 ${isLiked ? "bg-red-500/20 text-red-400" : "bg-white/10 text-white hover:bg-white/20"}`}
-          >
-            <Heart className={`h-4 w-4 ${isLiked ? "fill-current" : ""}`} />
-          </Button> */}
           <button
-  onClick={() => addToWishlist(movie._id,movie.theaterId ?? null)}
-  className="p-1 rounded-full border border-white/10 hover:bg-white/10 transition"
->
-  <Heart
-    className={`h-4 w-4 sm:h-5 sm:w-5 ${
-      isInWishlist ? "text-red-500 fill-red-500" : "text-white"
-    }`}
-  />
-</button>
+            onClick={handleWishlistClick}
+            className="p-1 rounded-full border cursor-pointer border-white/10 hover:bg-white/10 transition"
+          >
+            <Heart
+              className={`h-4 w-4 sm:h-5 sm:w-5 ${isInWishlist ? "text-red-500 fill-red-500" : "text-white"
+                }`}
+            />
+          </button>
 
         </div>
 
@@ -133,7 +135,7 @@ const isInWishlist = wishlistMovies.some(
 
       <CardFooter className="p-4 pt-0 sm:p-5 sm:pt-0 mt-auto">
         <Link href={`/movies/${city}/${movie._id}`} className="w-full">
-          <Button className="group w-full h-10 rounded-xl border-0 bg-gradient-to-r from-blue-600 to-purple-600 font-semibold text-white shadow-lg transition-all duration-300 hover:from-blue-500 hover:to-purple-500 hover:shadow-xl hover:shadow-blue-500/25 sm:h-11">
+          <Button className="group w-full h-10 rounded-xl cursor-pointer border-0 bg-gradient-to-r from-blue-600 to-purple-600 font-semibold text-white shadow-lg transition-all duration-300 hover:from-blue-500 hover:to-purple-500 hover:shadow-xl hover:shadow-blue-500/25 sm:h-11">
             <span className="flex items-center justify-center gap-2">
               View Details
               <svg
@@ -153,6 +155,11 @@ const isInWishlist = wishlistMovies.some(
           </Button>
         </Link>
       </CardFooter>
+      <LoginRequiredModal
+        open={loginModalOpen}
+        onOpenChange={setLoginModalOpen}
+      />
+
     </Card>
   )
 }

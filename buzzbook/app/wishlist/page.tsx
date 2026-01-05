@@ -5,12 +5,21 @@ import React, { useEffect } from "react";
 import { useLocation } from "@/app/context/LocationContext";
 import Image from "next/image";
 import { Heart, MapPin } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 import Link from "next/link";
-
+import { useRouter } from "next/navigation";
 export default function WishlistPage() {
+  const {user}=useAuth();
+  const router=useRouter();
   const { wishlistMovies, wishlistTheater, getWishlist, addToWishlist } =
     useLocation();
-
+  useEffect(()=>{
+     if(!user){
+      router.replace(`/login?redirect=${encodeURIComponent(
+          window.location.pathname + window.location.search
+        )}`);
+     }
+  },[user])
   useEffect(() => {
     getWishlist();
   }, []);
