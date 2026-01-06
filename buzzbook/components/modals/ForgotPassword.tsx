@@ -41,14 +41,19 @@ export default function ForgotPasswordModal({ open, onOpenChange }: ForgotPasswo
   });
 
   const onSubmit = async (data: ForgotPasswordFormData) => {
-    const res = await forgot(data);
-
-    if (res.success) {
-      toast.success("Password reset link sent to your email.");
-      form.reset();
-      onOpenChange(false);
-    } else {
-      toast.error(res.error.message || "Something went wrong.");
+    try {
+      const res = await forgot(data);
+      if (res.success) {
+        toast.success("Password reset link sent to your email.");
+        form.reset();
+        onOpenChange(false);
+      } else {
+        toast.error(res.error.message);
+      }
+    }
+    catch (err) {
+      console.error("Forgot error:", err);
+      toast.error("Something went wrong");
     }
   };
 

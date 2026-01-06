@@ -1,5 +1,3 @@
-"use server";
-
 import { route } from "@/lib/api";
 import axios from "axios";
 import { ForgotPasswordFormData } from "@/lib/validation/ForgotSchema";
