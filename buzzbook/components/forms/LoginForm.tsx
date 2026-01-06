@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useEffect,useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Mail, Lock,Eye,EyeOff } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 import {
   Form,
@@ -27,11 +27,12 @@ import ForgotPasswordModal from "@/components/modals/ForgotPassword";
 const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!;
 
 export default function LoginForm() {
-    const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
   const recaptchaRef = useRef<ReCAPTCHA>(null);
-const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { refreshUser } = useAuth();
   const form = useForm<LoginFormData>({
     resolver: zodResolver(LoginSchema),
@@ -50,34 +51,43 @@ const [showPassword, setShowPassword] = useState(false);
   }, [form]);
 
   const handleRecaptchaAndSubmit = async () => {
-    const recaptchaValue = await recaptchaRef.current?.executeAsync();
+    if (isLoading) return;
+    try {
+      setIsLoading(true);
+      const recaptchaValue = await recaptchaRef.current?.executeAsync();
 
-    if (!recaptchaValue) {
-      toast.error("reCAPTCHA failed, please try again");
-      return;
-    }
-
-    form.setValue("recaptchaToken", recaptchaValue);
-    recaptchaRef.current?.reset();
-
-    form.handleSubmit(async (data) => {
-      const res = await login(data);
-
-      if (res.success) {
-
-        toast.success("Logged in successfully!");
-        localStorage.setItem("userId", res.user.id);
-        form.reset();
-        await refreshUser();
-        router.push("/home");
-      } else if (res.fieldErrors) {
-        Object.entries(res.fieldErrors).forEach(([field, message]) =>
-          form.setError(field as keyof LoginFormData, { message })
-        );
-      } else {
-        toast.error(res.error?.message || "Login failed");
+      if (!recaptchaValue) {
+        toast.error("reCAPTCHA failed, please try again");
+        setIsLoading(false);
+        return;
       }
-    })();
+
+      form.setValue("recaptchaToken", recaptchaValue);
+      recaptchaRef.current?.reset();
+
+      form.handleSubmit(async (data) => {
+        const res = await login(data);
+
+        if (res.success) {
+
+          toast.success("Logged in successfully!");
+          localStorage.setItem("userId", res.user.id);
+          form.reset();
+          await refreshUser();
+          router.push("/home");
+        } else if (res.fieldErrors) {
+          Object.entries(res.fieldErrors).forEach(([field, message]) =>
+            form.setError(field as keyof LoginFormData, { message })
+          );
+        } else {
+          toast.error(res.error?.message || "Login failed");
+        }
+      })();
+    } catch (err) {
+      toast.error("Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -132,33 +142,40 @@ const [showPassword, setShowPassword] = useState(false);
                     className="auth-input pl-10"
                     {...field}
                   />
-                     <button
-                      type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a66b5] cursor-pointer"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                    >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a66b5] cursor-pointer"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-          <button
-            type="button"
-            onClick={() => setForgotOpen(true)}
-            className="self-end -mt-6 text-white pt-2 "
-          >
-            Forgot Password
-          </button>        
-          <ForgotPasswordModal open={forgotOpen} onOpenChange={setForgotOpen} />
+        <button
+          type="button"
+          onClick={() => setForgotOpen(true)}
+          className="self-end -mt-6 text-white pt-2 "
+        >
+          Forgot Password
+        </button>
+        <ForgotPasswordModal open={forgotOpen} onOpenChange={setForgotOpen} />
 
 
         <ReCAPTCHA ref={recaptchaRef} sitekey={siteKey} size="invisible" />
 
-        <Button type="submit" className="w-full bg-[#372152]  text-white hover:bg-[#7554a1] hover:text-[#e4c8bb] font-bold mb-3 ">
-          Login
+        <Button type="submit" disabled={isLoading} className="w-full bg-[#372152]  text-white hover:bg-[#7554a1] hover:text-[#e4c8bb] font-bold mb-3 ">
+          {isLoading ? (
+            <>
+              <span className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-purple-500" />
+              Logging in...
+            </>
+          ) : (
+            "Login"
+          )}
         </Button>
 
         <h3 className="text-center font-medium text-white">Or login with</h3>

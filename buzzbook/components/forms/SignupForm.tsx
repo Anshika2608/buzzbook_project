@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { use, useRef, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,6 +31,7 @@ export default function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { refreshUser } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
   const recaptchaRef = useRef<ReCAPTCHA>(null);
   const router = useRouter();
   const form = useForm<SignupFormData>({
@@ -46,40 +47,50 @@ export default function SignupForm() {
 
 
   const handleRecaptchaAndSubmit = async () => {
-    const recaptchaToken = await recaptchaRef.current?.executeAsync();
-    if (!recaptchaToken) {
-      toast.error("reCAPTCHA failed, please try again");
-      return;
-    }
-    recaptchaRef.current?.reset();
-    form.handleSubmit(async (data) => {
+    if (isLoading) return;
+    try {
+      setIsLoading(true);
 
-      try {
-        const payload = {
-          ...data,
-          recaptchaToken,
-        };
-        await api.post(route.register, payload, { withCredentials: true }
-        );
-
-        toast.success("🎉 Account created!");
-        await refreshUser();
-        form.reset();
-        router.push("/")
-      } catch (error: unknown) {
-        if (axios.isAxiosError(error)) {
-          toast.error(
-            (error.response?.data as { message?: string })?.message ||
-            "Signup failed"
-          );
-        } else if (error instanceof Error) {
-          toast.error(error.message);
-        } else {
-          toast.error("Unexpected error occurred");
-        }
+      const recaptchaToken = await recaptchaRef.current?.executeAsync();
+      if (!recaptchaToken) {
+        toast.error("reCAPTCHA failed, please try again");
+        setIsLoading(false);
+        return;
       }
+      recaptchaRef.current?.reset();
+      form.handleSubmit(async (data) => {
 
-    })();
+        try {
+          const payload = {
+            ...data,
+            recaptchaToken,
+          };
+          await api.post(route.register, payload, { withCredentials: true }
+          );
+
+          toast.success("🎉 Account created!");
+          await refreshUser();
+          form.reset();
+          router.push("/")
+        } catch (error: unknown) {
+          if (axios.isAxiosError(error)) {
+            toast.error(
+              (error.response?.data as { message?: string })?.message ||
+              "Signup failed"
+            );
+          } else if (error instanceof Error) {
+            toast.error(error.message);
+          } else {
+            toast.error("Unexpected error occurred");
+          }
+        }
+
+      })();
+    } catch (err) {
+      toast.error("Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
 
@@ -206,7 +217,14 @@ export default function SignupForm() {
           />
 
           <Button type="submit" className="w-full bg-[#372152]  text-white hover:bg-[#7554a1] hover:text-[#e4c8bb] font-bold mb-3">
-            Sign up
+            {isLoading ? (
+              <>
+                <span className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-purple-500" />
+                Signing in...
+              </>
+            ) : (
+              "Sign up"
+            )}
           </Button>
           <h3 className="text-center text-white"> <Link href="/login">Already have an account ? Login
           </Link></h3>
