@@ -7,7 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
-
+import EmailVerificationRequired from "../modals/EmailVerificationModal";
+import OtpVerificationModal from "../modals/OtpVerificationModal";
 import {
   Form,
   FormControl,
@@ -29,6 +30,9 @@ const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!;
 export default function LoginForm() {
   const [forgotOpen, setForgotOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [verifyModalOpen, setVerifyModalOpen] = useState(false);
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
 
   const router = useRouter();
   const recaptchaRef = useRef<ReCAPTCHA>(null);
@@ -75,7 +79,20 @@ export default function LoginForm() {
           form.reset();
           await refreshUser();
           router.push("/home");
-        } else if (res.fieldErrors) {
+          return;
+        }
+        if (
+          res.error?.status === 403 &&
+          res.error.message === "Please verify your email before logging in"
+        ) {
+          const emailFromInput = form.getValues("email");
+
+          setPendingEmail(emailFromInput);
+          setVerifyModalOpen(true);
+          return;
+        }
+
+        if (res.fieldErrors) {
           Object.entries(res.fieldErrors).forEach(([field, message]) =>
             form.setError(field as keyof LoginFormData, { message })
           );
@@ -83,110 +100,130 @@ export default function LoginForm() {
           toast.error(res.error?.message || "Login failed");
         }
       })();
-    } catch (err) {
+    } catch {
       toast.error("Something went wrong");
     } finally {
       setIsLoading(false);
     }
   };
-
   return (
-    <Form {...form}>
+    <>
+      <Form {...form}>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleRecaptchaAndSubmit();
-        }}
-        className="flex flex-col items-center justify-center space-y-4 mx-auto py-6  rounded-lg w-2xs">
-        <div className="">
-          <img
-            src="/LogoF.png"
-            alt="Logo"
-            className="h-20 min-h-[5rem] w-auto object-contain "
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleRecaptchaAndSubmit();
+          }}
+          className="flex flex-col items-center justify-center space-y-4 mx-auto py-6  rounded-lg w-2xs">
+          <div className="">
+            <img
+              src="/LogoF.png"
+              alt="Logo"
+              className="h-20 min-h-[5rem] w-auto object-contain "
+            />
+          </div>
+          <h2 className="text-white text-xl font-bold text-center">Log in</h2>
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel className="text-white text-lg">Email</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a66b5] w-5 h-5" />
+                    <Input
+                      type="email"
+                      className="auth-input pl-10 w-full"
+                      {...field}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        <h2 className="text-white text-xl font-bold text-center">Log in</h2>
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem className="w-full">
-              <FormLabel className="text-white text-lg">Email</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a66b5] w-5 h-5" />
-                  <Input
-                    type="email"
-                    className="auth-input pl-10 w-full"
-                    {...field}
-                  />
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem className="w-full">
-              <FormLabel className="text-white text-lg">Password</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a66b5] w-5 h-5" />
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    className="auth-input pl-10"
-                    {...field}
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a66b5] cursor-pointer"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <button
-          type="button"
-          onClick={() => setForgotOpen(true)}
-          className="self-end -mt-6 text-white pt-2 "
-        >
-          Forgot Password
-        </button>
-        <ForgotPasswordModal open={forgotOpen} onOpenChange={setForgotOpen} />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel className="text-white text-lg">Password</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8a66b5] w-5 h-5" />
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      className="auth-input pl-10"
+                      {...field}
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8a66b5] cursor-pointer"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <button
+            type="button"
+            onClick={() => setForgotOpen(true)}
+            className="self-end -mt-6 text-white pt-2 "
+          >
+            Forgot Password
+          </button>
+          <ForgotPasswordModal open={forgotOpen} onOpenChange={setForgotOpen} />
 
 
-        <ReCAPTCHA ref={recaptchaRef} sitekey={siteKey} size="invisible" />
+          <ReCAPTCHA ref={recaptchaRef} sitekey={siteKey} size="invisible" />
 
-        <Button type="submit" disabled={isLoading} className="w-full bg-[#372152]  text-white hover:bg-[#7554a1] hover:text-[#e4c8bb] font-bold mb-3 ">
-          {isLoading ? (
-            <>
-              <span className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-purple-500" />
-              Logging in...
-            </>
-          ) : (
-            "Login"
-          )}
-        </Button>
+          <Button type="submit" disabled={isLoading} className="w-full bg-[#372152]  text-white hover:bg-[#7554a1] hover:text-[#e4c8bb] font-bold mb-3 ">
+            {isLoading ? (
+              <>
+                <span className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-purple-500" />
+                Logging in...
+              </>
+            ) : (
+              "Login"
+            )}
+          </Button>
 
-        <h3 className="text-center font-medium text-white">Or login with</h3>
-        <Button
-          onClick={handleGoogleLogin}
-          className="bg-[#372152] w-full hover:bg-[#7554a1]"
-        >
-          Continue with Google
-        </Button>
-        <h3 className="text-center text-white"><Link href='/signup'>Don&apos;t have an account? Signup</Link></h3>
-      </form>
-    </Form>
+          <h3 className="text-center font-medium text-white">Or login with</h3>
+          <Button
+            onClick={handleGoogleLogin}
+            className="bg-[#372152] w-full hover:bg-[#7554a1]"
+          >
+            Continue with Google
+          </Button>
+          <h3 className="text-center text-white"><Link href='/signup'>Don&apos;t have an account? Sign up</Link></h3>
+        </form>
+      </Form>
+      <EmailVerificationRequired
+        open={verifyModalOpen}
+        email={pendingEmail}
+        onOpenChange={setVerifyModalOpen}
+        onOtpSent={() => {
+          setVerifyModalOpen(false);
+          setOtpModalOpen(true);
+        }}
+      />
+
+      <OtpVerificationModal
+        open={otpModalOpen}
+        onOpenChange={setOtpModalOpen}
+        email={pendingEmail}
+        onSuccess={async () => {
+          await refreshUser();
+          router.push("/home");
+        }}
+      />
+    </>
   );
 }

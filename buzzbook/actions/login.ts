@@ -58,7 +58,18 @@ export default async function login(formData: LoginFormData) {
     } else if (error instanceof Error) {
       description = error.message;
     }
-
+    if (
+      status === 403 &&
+      message === "Please verify your email before logging in"
+    ) {
+      return {
+        success: false,
+        error: {
+          message,
+          status,
+        },
+      };
+    }
     return {
       success: false,
       error: {

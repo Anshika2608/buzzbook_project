@@ -25,6 +25,6 @@ export const route = {
     'updateTempBooking':api+'booking/temp/update',
     'releaseBooking' : api+'booking/temp/release',
     'updateSeats':api+'booking/updateSeats',
-    
-
+    'verifyEmail':api+'auth/verifyEmail',
+    'resendOtp':api+"auth/resendOTP"
 }

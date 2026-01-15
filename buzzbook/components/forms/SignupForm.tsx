@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useRef, useState } from "react";
+import {useRef, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,7 +11,7 @@ import api from "@/lib/interceptor"
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
 import axios from "axios";
-
+import OtpVerificationModal from "../modals/OtpVerificationModal";
 import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import {
   Form,
@@ -34,6 +34,9 @@ export default function SignupForm() {
   const [isLoading, setIsLoading] = useState(false);
   const recaptchaRef = useRef<ReCAPTCHA>(null);
   const router = useRouter();
+  const [otpOpen, setOtpOpen] = useState(false);
+  const [signupEmail, setSignupEmail] = useState("");
+
   const form = useForm<SignupFormData>({
     resolver: zodResolver(SignupSchema),
     defaultValues: {
@@ -67,11 +70,9 @@ export default function SignupForm() {
           };
           await api.post(route.register, payload, { withCredentials: true }
           );
-
-          toast.success("🎉 Account created!");
-          await refreshUser();
-          form.reset();
-          router.push("/")
+          toast.success("OTP sent to your email");
+          setSignupEmail(data.email);
+          setOtpOpen(true);
         } catch (error: unknown) {
           if (axios.isAxiosError(error)) {
             toast.error(
@@ -86,7 +87,7 @@ export default function SignupForm() {
         }
 
       })();
-    } catch (err) {
+    } catch {
       toast.error("Something went wrong");
     } finally {
       setIsLoading(false);
@@ -220,7 +221,7 @@ export default function SignupForm() {
             {isLoading ? (
               <>
                 <span className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-purple-500" />
-                Signing in...
+                Signing up...
               </>
             ) : (
               "Sign up"
@@ -231,6 +232,16 @@ export default function SignupForm() {
         </form>
 
       </Form>
+      <OtpVerificationModal
+        open={otpOpen}
+        onOpenChange={setOtpOpen}
+        email={signupEmail}
+        onSuccess={async () => {
+          await refreshUser();
+          router.push("/");
+        }}
+      />
+
     </>
   );
 }
