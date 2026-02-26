@@ -50,7 +50,10 @@ function PaymentPageInner() {
     const seats = searchParams.get("seats")?.split(",") || [];
     const ticketPrice = Number(searchParams.get("ticketPrice") || 0);
     const snacks = JSON.parse(searchParams.get("snacks") || "[]") as SnackItem[];
-
+    const tempBookingId =
+        typeof window !== "undefined"
+            ? localStorage.getItem("tempBookingId")
+            : null;
     const [loading, setLoading] = useState(false);
     const [updatedTotal, setUpdatedTotal] = useState(ticketPrice);
 
@@ -73,16 +76,12 @@ function PaymentPageInner() {
     }, []);
     // 1) UPDATE temp booking
     useEffect(() => {
-        const tempBookingId = localStorage.getItem("tempBookingId");
-
         if (!tempBookingId) {
             console.error("No tempBookingId found!");
             return;
         }
-
         const syncTempBooking = async () => {
             try {
-
                 //  Update snacks → this returns total_price
                 const res = await api.put(route.updateTempBooking, {
                     tempBookingId,
@@ -92,7 +91,6 @@ function PaymentPageInner() {
                         quantity: item.qty
                     })),
                 });
-
                 // Update UI with backend total
                 if (res?.data?.total_price) {
                     setUpdatedTotal(res.data.total_price);
@@ -107,7 +105,7 @@ function PaymentPageInner() {
         };
 
         syncTempBooking();
-    }, [snacks, seats]);
+    }, [snacks, seats, tempBookingId]);
 
 
     // Razorpay Loader
@@ -120,7 +118,7 @@ function PaymentPageInner() {
             document.body.appendChild(script);
         });
     };
-
+    const isBookingValid = !!tempBookingId;
     // Handle Payment
     const handlePayment = async () => {
         try {
@@ -155,10 +153,11 @@ function PaymentPageInner() {
                 order_id,
 
                 handler: async function (res: RazorpayResponse) {
-                    const verifyRes = await api.post(`${route.verifyPayment}`, {
+                    const verifyRes = await api.post(route.verifyPayment, {
                         razorpay_order_id: res.razorpay_order_id,
                         razorpay_payment_id: res.razorpay_payment_id,
                         razorpay_signature: res.razorpay_signature,
+                        tempBookingId,
                         bookingDetails: {
                             theater_id,
                             audi_number,
@@ -173,21 +172,34 @@ function PaymentPageInner() {
                                 snackId: s.id,
                                 unit: s.unit,
                                 quantity: s.qty,
-                                price: s.price * s.qty
+                                price: s.price * s.qty,
                             })),
                             snacks_total: snackTotal,
-                            total_price: updatedTotal
-                        }
+                            total_price: updatedTotal,
+                        },
                     });
 
-                    if (verifyRes.data.success) {
-                        localStorage.removeItem("tempBookingId")
-                        router.push(
-                            `/success?movie_title=${movie_title}&show_date=${show_date}&showtime=${showtime}&seats=${seats.join(
-                                ","
-                            )}&audi_number=${audi_number}`
-                        );
+                    // 🚨 HANDLE EXPIRED FIRST
+                    if (!verifyRes.data.success) {
+                        if (verifyRes.data.reason === "BOOKING_EXPIRED") {
+                            toast.error("⏰ Your session expired. Please select seats again.");
+                            localStorage.removeItem("tempBookingId");
+                            router.replace("/");
+                            return;
+                        }
+
+                        toast.error("Payment verification failed");
+                        return;
                     }
+
+                    // ✅ SUCCESS FLOW
+                    localStorage.removeItem("tempBookingId");
+
+                    router.push(
+                        `/success?movie_title=${movie_title}&show_date=${show_date}&showtime=${showtime}&seats=${seats.join(
+                            ","
+                        )}&audi_number=${audi_number}`
+                    );
                 },
 
                 theme: { color: "#a855f7" },
@@ -265,7 +277,7 @@ function PaymentPageInner() {
                     <Button
                         className="w-full max-w-md text-2xl bg-purple-600 hover:bg-purple-700 rounded-xl shadow-lg shadow-purple-700/50"
                         onClick={handlePayment}
-                        disabled={loading}
+                        disabled={loading || !isBookingValid}
                     >
                         {loading ? "Processing..." : `Pay ₹${updatedTotal}`}
                     </Button>
