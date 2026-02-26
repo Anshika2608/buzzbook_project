@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { route } from "@/lib/api";
 import { Movie, Wishlist } from "@/app/types/movie";
-import {Reply, Theatre } from "@/app/types/theatre";
+import { Reply, Theatre } from "@/app/types/theatre";
 import { CarouselMovie } from "@/app/types/movie";
 import api from "@/lib/interceptor";
 import { AxiosError } from "axios";
@@ -11,6 +11,7 @@ type LocationContextType = {
   setCity: (city: string) => void;
   cities: string[];
   movies: Movie[];
+  isLoadingMovies: boolean;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   fetchMovieDetails: (id: string) => Promise<Movie | null>;
@@ -25,20 +26,21 @@ type LocationContextType = {
   fetchUniqueShowTime: (city: string, selectedRange: string, movieTitle: string) => Promise<void>
   addToWishlist: (movieId: string, theaterId: string | null) => Promise<void>;
   wishlistMovies: Wishlist[];
-   wishlistTheater: Wishlist[];
-  getWishlist:()=>Promise<void>;
+  wishlistTheater: Wishlist[];
+  getWishlist: () => Promise<void>;
   addReview: (
-  movieId: string,
-  payload: { critic_name: string; rating: number; review: string }
-) => Promise<void>;
-getReviewReplies: (movieId: string, reviewId: string) => Promise<Reply[]>;
-addReply: (movieId: string, reviewId: string, reply: string) => Promise<void>;
-markReviewHelpful: (movieId: string, reviewId: string) => Promise<void>;
+    movieId: string,
+    payload: { critic_name: string; rating: number; review: string }
+  ) => Promise<void>;
+  getReviewReplies: (movieId: string, reviewId: string) => Promise<Reply[]>;
+  addReply: (movieId: string, reviewId: string, reply: string) => Promise<void>;
+  markReviewHelpful: (movieId: string, reviewId: string) => Promise<void>;
 };
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
 export const LocationProvider = ({ children }: { children: ReactNode }) => {
+  const [isLoadingMovies, setIsLoadingMovies] = useState(false);
   const [city, setCityState] = useState<string>("Lucknow");
   const [cities, setCities] = useState<string[]>([]);
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -54,12 +56,15 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
 
   // ✅ fetch movies in a city
   const fetchMovies = async (selectedCity: string) => {
+    setIsLoadingMovies(true);
     try {
       const res = await api.get(`${route.movie}?location=${selectedCity}`);
       setMovies(res.data.movies || []);
     } catch (err) {
       console.error("Error fetching movies", err);
       setMovies([]);
+    } finally {
+      setIsLoadingMovies(false);
     }
   };
 
@@ -176,34 +181,34 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
     fetchMovies(city);
   }, [city]);
 
-//wishlist
-const addToWishlist = async (movieId: string, theaterId: string | null) => {
-  console.log("thaeater",theaterId)
-  try {
-    const res = await api.post(`${route.wishlist}/add`, {
-      movieId,
-      theaterId,
-    });
-    await getWishlist();
-    return res.data;
-  } catch (err) {
-    console.error("❌ Error adding to wishlist", err);
-    throw err;
-  }
-};
-//get wishlist 
-const getWishlist = async () => {
-  try {
-    const res = await api.get(`${route.wishlist}`);
-    setWishlistMovies(res.data.wishlist.movies || []);
-    setWishlistTheater(res.data.wishlist.theaters || [])
-    
-  } catch (err) {
-    console.error("❌ Error fetching wishlist", err);
-    setWishlistMovies([]);
-    setWishlistTheater([])
-  }
-};
+  //wishlist
+  const addToWishlist = async (movieId: string, theaterId: string | null) => {
+    console.log("thaeater", theaterId)
+    try {
+      const res = await api.post(`${route.wishlist}/add`, {
+        movieId,
+        theaterId,
+      });
+      await getWishlist();
+      return res.data;
+    } catch (err) {
+      console.error("❌ Error adding to wishlist", err);
+      throw err;
+    }
+  };
+  //get wishlist 
+  const getWishlist = async () => {
+    try {
+      const res = await api.get(`${route.wishlist}`);
+      setWishlistMovies(res.data.wishlist.movies || []);
+      setWishlistTheater(res.data.wishlist.theaters || [])
+
+    } catch (err) {
+      console.error("❌ Error fetching wishlist", err);
+      setWishlistMovies([]);
+      setWishlistTheater([])
+    }
+  };
 
   useEffect(() => {
     getWishlist();
@@ -246,69 +251,69 @@ const getWishlist = async () => {
     fetchComingSoonMovies();
   }, []);
 
-const addReview = async (
-  movieId: string,
-  payload: {
-    critic_name: string;
-    rating: number;
-    review: string;
-  }
-) => {
-  try {
-    const res = await api.post(`${route.review}/${movieId}/reviews`, payload);
-    await fetchMovieDetails(movieId);
+  const addReview = async (
+    movieId: string,
+    payload: {
+      critic_name: string;
+      rating: number;
+      review: string;
+    }
+  ) => {
+    try {
+      const res = await api.post(`${route.review}/${movieId}/reviews`, payload);
+      await fetchMovieDetails(movieId);
 
-    return res.data;
-  } catch (err) {
-    console.error("❌ Error adding review", err);
-    throw err;
-  }
-};
+      return res.data;
+    } catch (err) {
+      console.error("❌ Error adding review", err);
+      throw err;
+    }
+  };
 
-const getReviewReplies = async (movieId: string, reviewId: string) => {
-  try {
-    const res = await api.get(`${route.review}/${movieId}/reviews/${reviewId}/replies`);
-    return res.data.replies || [];
-  } catch (err) {
-    const error=err as AxiosError
-    console.error(
-      "❌ Error fetching review replies",
-      error.response?.data || error.message
-    );
-    return [];
-  }
-};
+  const getReviewReplies = async (movieId: string, reviewId: string) => {
+    try {
+      const res = await api.get(`${route.review}/${movieId}/reviews/${reviewId}/replies`);
+      return res.data.replies || [];
+    } catch (err) {
+      const error = err as AxiosError
+      console.error(
+        "❌ Error fetching review replies",
+        error.response?.data || error.message
+      );
+      return [];
+    }
+  };
 
-const addReply = async (movieId: string, reviewId: string, reply: string) => {
-  try {
-    const res = await api.post(
-      `${route.review}/${movieId}/reviews/${reviewId}/replies`,
-      {reply}
-    );
-    await fetchMovieDetails(movieId);
-    await getReviewReplies(movieId,reviewId)
-    return res.data;
-  } catch (err) {
-    const error=err as AxiosError
-    console.error("❌ Error adding reply", error.response?.data || error.message);
-    throw err;
-  }
-};
+  const addReply = async (movieId: string, reviewId: string, reply: string) => {
+    try {
+      const res = await api.post(
+        `${route.review}/${movieId}/reviews/${reviewId}/replies`,
+        { reply }
+      );
+      await fetchMovieDetails(movieId);
+      await getReviewReplies(movieId, reviewId)
+      return res.data;
+    } catch (err) {
+      const error = err as AxiosError
+      console.error("❌ Error adding reply", error.response?.data || error.message);
+      throw err;
+    }
+  };
 
-const markReviewHelpful = async (movieId: string, reviewId: string) => {
-  try {
-    const res = await api.post(
-      `${route.review}/${movieId}/reviews/${reviewId}/helpful`
-    );
-    await fetchMovieDetails(movieId);
+  const markReviewHelpful = async (movieId: string, reviewId: string) => {
+    try {
+      const res = await api.post(
+        `${route.review}/${movieId}/reviews/${reviewId}/helpful`
+      );
+      await fetchMovieDetails(movieId);
 
-    return res.data;
-  } catch (err) {
-    const error=err as AxiosError
-    console.error("❌ Error adding reply", error.response?.data || error.message);
-    throw err;
-  }
-};
+      return res.data;
+    } catch (err) {
+      const error = err as AxiosError
+      console.error("❌ Error adding reply", error.response?.data || error.message);
+      throw err;
+    }
+  };
 
 
 
@@ -316,6 +321,7 @@ const markReviewHelpful = async (movieId: string, reviewId: string) => {
   return (
     <LocationContext.Provider
       value={{
+        isLoadingMovies,
         city,
         setCity,
         cities,
