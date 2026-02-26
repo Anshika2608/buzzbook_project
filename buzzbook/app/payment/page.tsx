@@ -1,7 +1,8 @@
 "use client";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
-import React, { useEffect, useState, Suspense } from "react";
+import { toast } from "sonner"
+import React, { useEffect, useState, Suspense, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import api from "@/lib/interceptor";
 import { route } from "@/lib/api";
@@ -57,13 +58,25 @@ function PaymentPageInner() {
         (sum, item) => sum + item.qty * item.price,
         0
     );
+    const shownRef = useRef(false);
 
+    useEffect(() => {
+        const noSnacks = searchParams.get("noSnacks");
+
+        if (noSnacks && !shownRef.current) {
+            shownRef.current = true;
+
+            toast.info("Snacks are not available for this theatre.", {
+                className: "!bg-purple-900 !text-purple-200 !border-purple-500",
+            });
+        }
+    }, []);
     // 1) UPDATE temp booking
     useEffect(() => {
         const tempBookingId = localStorage.getItem("tempBookingId");
 
         if (!tempBookingId) {
-            console.error("❌ No tempBookingId found!");
+            console.error("No tempBookingId found!");
             return;
         }
 
@@ -89,7 +102,7 @@ function PaymentPageInner() {
                 }
 
             } catch (err) {
-                console.error("❌ Error syncing temp booking:", err);
+                console.error("Error syncing temp booking:", err);
             }
         };
 
@@ -193,79 +206,79 @@ function PaymentPageInner() {
 
     return (
 
-            <div className="min-h-screen bg-gradient-to-b from-black via-purple-950/40 to-black text-white p-6 ">
-                <div className="max-w-6xl mx-auto mt-24">
+        <div className="min-h-screen bg-gradient-to-b from-black via-purple-950/40 to-black text-white p-6 ">
+            <div className="max-w-6xl mx-auto mt-24">
 
-                    <h1 className="text-4xl font-bold text-center mb-8">Order Summary</h1>
+                <h1 className="text-4xl font-bold text-center mb-8">Order Summary</h1>
 
-                    {/* MOVIE DETAILS */}
-                    <div className="text-lg mb-6">
-                        <p className="font-bold text-purple-400 text-xl mb-2">🎬 Movie Details</p>
+                {/* MOVIE DETAILS */}
+                <div className="text-lg mb-6">
+                    <p className="font-bold text-purple-400 text-xl mb-2">🎬 Movie Details</p>
 
-                        <div className="space-y-3 text-purple-200">
-                            <p><span className="text-purple-400 font-medium">Movie:</span> {movie_title}</p>
-                            <p><span className="text-purple-400 font-medium">Theater:</span> {theaterName}</p>
-                            <p><span className="text-purple-400 font-medium">Date:</span> {show_date}</p>
-                            <p><span className="text-purple-400 font-medium">Showtime:</span> {showtime}</p>
-                            <p><span className="text-purple-400 font-medium">Seats:</span> {seats.join(", ")}</p>
-                        </div>
-
-                        <div className="mt-3 flex justify-between text-xl font-bold text-purple-300">
-                            <span>Ticket Price</span>
-                            <span>₹{ticketPrice}</span>
-                        </div>
+                    <div className="space-y-3 text-purple-200">
+                        <p><span className="text-purple-400 font-medium">Movie:</span> {movie_title}</p>
+                        <p><span className="text-purple-400 font-medium">Theater:</span> {theaterName}</p>
+                        <p><span className="text-purple-400 font-medium">Date:</span> {show_date}</p>
+                        <p><span className="text-purple-400 font-medium">Showtime:</span> {showtime}</p>
+                        <p><span className="text-purple-400 font-medium">Seats:</span> {seats.join(", ")}</p>
                     </div>
 
-                    <hr className="border-purple-800 my-6" />
-
-                    {/* SNACKS SECTION */}
-                    <div className="text-lg mb-6">
-                        <p className="font-bold text-purple-400 text-xl mb-2">🍿 Snacks</p>
-
-                        {snacks.length === 0 ? (
-                            <p className="text-purple-400">No snacks selected</p>
-                        ) : (
-                            snacks.map((item: SnackItem, i: number) => (
-                                <div key={i} className="flex justify-between py-2 text-purple-200">
-                                    <span>{item.unit} × {item.qty}</span>
-                                    <span>₹{item.qty * item.price}</span>
-                                </div>
-                            ))
-                        )}
-
-                        <div className="mt-3 flex justify-between text-xl font-bold text-purple-300">
-                            <span>Snacks Total</span>
-                            <span>₹{snackTotal}</span>
-                        </div>
+                    <div className="mt-3 flex justify-between text-xl font-bold text-purple-300">
+                        <span>Ticket Price</span>
+                        <span>₹{ticketPrice}</span>
                     </div>
-
-                    <hr className="border-purple-800 my-6" />
-
-                    {/* UPDATED TOTAL */}
-                    <div className="flex justify-between items-center text-3xl font-semibold text-white mb-10">
-                        <span>Total Amount</span>
-                        <span className="text-green-400">₹{updatedTotal}</span>
-                    </div>
-
-                    {/* PAY BUTTON */}
-                    <div className="w-full flex justify-center">
-                        <Button
-                            className="w-full max-w-md text-2xl bg-purple-600 hover:bg-purple-700 rounded-xl shadow-lg shadow-purple-700/50"
-                            onClick={handlePayment}
-                            disabled={loading}
-                        >
-                            {loading ? "Processing..." : `Pay ₹${updatedTotal}`}
-                        </Button>
-                    </div>
-
                 </div>
+
+                <hr className="border-purple-800 my-6" />
+
+                {/* SNACKS SECTION */}
+                <div className="text-lg mb-6">
+                    <p className="font-bold text-purple-400 text-xl mb-2">🍿 Snacks</p>
+
+                    {snacks.length === 0 ? (
+                        <p className="text-purple-400">No snacks selected</p>
+                    ) : (
+                        snacks.map((item: SnackItem, i: number) => (
+                            <div key={i} className="flex justify-between py-2 text-purple-200">
+                                <span>{item.unit} × {item.qty}</span>
+                                <span>₹{item.qty * item.price}</span>
+                            </div>
+                        ))
+                    )}
+
+                    <div className="mt-3 flex justify-between text-xl font-bold text-purple-300">
+                        <span>Snacks Total</span>
+                        <span>₹{snackTotal}</span>
+                    </div>
+                </div>
+
+                <hr className="border-purple-800 my-6" />
+
+                {/* UPDATED TOTAL */}
+                <div className="flex justify-between items-center text-3xl font-semibold text-white mb-10">
+                    <span>Total Amount</span>
+                    <span className="text-green-400">₹{updatedTotal}</span>
+                </div>
+
+                {/* PAY BUTTON */}
+                <div className="w-full flex justify-center">
+                    <Button
+                        className="w-full max-w-md text-2xl bg-purple-600 hover:bg-purple-700 rounded-xl shadow-lg shadow-purple-700/50"
+                        onClick={handlePayment}
+                        disabled={loading}
+                    >
+                        {loading ? "Processing..." : `Pay ₹${updatedTotal}`}
+                    </Button>
+                </div>
+
             </div>
+        </div>
     );
 }
 export default function PaymentPage() {
-  return (
-    <Suspense fallback={<div className="p-10 text-white text-center">Loading...</div>}>
-      <PaymentPageInner />
-    </Suspense>
-  );
+    return (
+        <Suspense fallback={<div className="p-10 text-white text-center">Loading...</div>}>
+            <PaymentPageInner />
+        </Suspense>
+    );
 }

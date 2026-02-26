@@ -24,7 +24,7 @@ export default function MovieDetailPage() {
   const [activeReply, setActiveReply] = useState<string | null>(null);
 
 
- 
+
   useEffect(() => {
     if (id) fetchMovieDetails(id);
   }, [id]);
@@ -567,9 +567,6 @@ export default function MovieDetailPage() {
                 <p className="mb-6 text-gray-400">Be the first to share your thoughts about this movie!</p>
               </div>
             )}
-
-            {/* Write Review Button */}
-
           </div>
         </div>
       </div>
@@ -594,6 +591,7 @@ export default function MovieDetailPage() {
           </div>
         </div>
       </div>
+      
       <ReviewModal
         open={reviewOpen}
         onClose={() => setReviewOpen(false)}
