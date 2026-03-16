@@ -183,19 +183,18 @@ export default function TheatrePage() {
       {/* Content */}
       <div className="mx-auto max-w-screen-xl px-4 py-6 sm:px-6 lg:px-8">
         {/* Date Selector */}
-        <div className="mb-6 flex overflow-x-auto pb-2">
+        <div className="mb-6 flex overflow-x-auto pb-2 hide-scrollbar">
           <div className="flex gap-3">
             {dates.map((date) => (
               <Button
                 key={date.date}
                 variant={selectedDate === date.date ? "default" : "outline"}
-                className={`flex min-w-[70px] flex-col items-center rounded-xl p-3 shadow-lg transition-transform hover:scale-105 ${selectedDate === date.date
+                className={`flex min-h-[3.5rem] min-w-[70px] flex-col items-center rounded-xl p-3 shadow-lg transition-transform hover:scale-105 ${selectedDate === date.date
                   ? "bg-purple-600 text-white shadow-purple-500/30 hover:bg-purple-700"
                   : "border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
                   }`}
                 onClick={() => setSelectedDate(date.date)}
               >
-                <span className="text-xs font-medium">{date.day}</span>
                 <span className="text-lg font-bold">{date.dayNum}</span>
                 <span className="text-xs">{date.month}</span>
               </Button>
