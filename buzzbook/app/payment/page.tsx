@@ -1,6 +1,7 @@
 "use client";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
+import axios from "axios";
 import { toast } from "sonner"
 import React, { useEffect, useState, Suspense, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -125,10 +126,18 @@ function PaymentPageInner() {
             setLoading(true);
 
             const orderRes = await api.post(`${route.createPayment}`, {
+                tempBookingId,
                 amount: updatedTotal,
                 currency: "INR",
             });
+            if (!orderRes?.data?.success &&
+                orderRes?.data?.reason === "BOOKING_EXPIRED") {
 
+                toast.error("⏰ Session expired. Please select seats again.");
+                localStorage.removeItem("tempBookingId");
+                router.replace("/");
+                return;
+            }
             if (!orderRes.data.success) {
                 alert("Order creation failed");
                 setLoading(false);
@@ -210,9 +219,22 @@ function PaymentPageInner() {
 
             setLoading(false);
         } catch (err) {
-            alert("Payment failed!");
-            console.error("❌ Payment failed:", err);
-            setLoading(false);
+
+            if (axios.isAxiosError(err)) {
+
+                const reason = err.response?.data?.reason;
+
+                if (reason === "BOOKING_EXPIRED") {
+                    toast.error("⏰ Session expired.");
+                    localStorage.removeItem("tempBookingId");
+                    router.replace("/");
+                    return;
+                }
+
+            }
+
+            toast.error("Payment failed");
+            console.error(err);
         }
     };
 
@@ -277,7 +299,7 @@ function PaymentPageInner() {
                     <Button
                         className="w-full max-w-md text-2xl bg-purple-600 hover:bg-purple-700 rounded-xl shadow-lg shadow-purple-700/50"
                         onClick={handlePayment}
-                        disabled={loading || !isBookingValid}
+                        disabled={loading }
                     >
                         {loading ? "Processing..." : `Pay ₹${updatedTotal}`}
                     </Button>
