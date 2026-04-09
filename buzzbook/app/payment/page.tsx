@@ -119,7 +119,7 @@ function PaymentPageInner() {
             document.body.appendChild(script);
         });
     };
-    const isBookingValid = !!tempBookingId;
+    // const isBookingValid = !!tempBookingId;
     // Handle Payment
     const handlePayment = async () => {
         try {
